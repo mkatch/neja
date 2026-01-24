@@ -1,0 +1,22 @@
+{
+	"compilerOptions": {
+		"target": "es2023",
+		"useDefineForClassFields": true,
+		"module": "node20",
+		"skipLibCheck": true,
+		"moduleResolution": "node16",
+		"sourceMap": true,
+		"baseUrl": "./",
+		"rootDir": "./",
+		"outDir": "./build",
+		"types": ["node"],
+		"noEmit": true,
+
+		/* Linting */
+		"strict": true,
+		"noFallthroughCasesInSwitch": true,
+		"noUncheckedSideEffectImports": true,
+		"allowImportingTsExtensions": true
+	},
+	"exclude": ["build", "node_modules"]
+}

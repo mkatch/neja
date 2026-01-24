@@ -1,0 +1,5 @@
+node_modules
+build
+
+# We want to be self-hosted and npm is used only to bootstrap.
+package-lock.json

@@ -1,0 +1,17 @@
+{
+	"name": "neja",
+	"version": "0.0.0",
+	"description": "Placeholder for Neja build system",
+	"license": "ISC",
+	"author": "",
+	"type": "module",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"dependencies": {
+		"@types/node": "^25.0.9",
+		"commander": "^14.0.2",
+		"esbuild": "^0.27.2"
+	}
+}
