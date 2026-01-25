@@ -12,6 +12,7 @@ export {
 	dir,
 	file,
 	fileTree,
+	imported,
 	queryDir,
 	queryDirNaive,
 	queryFile,
@@ -21,4 +22,4 @@ export {
 	sourceTree,
 } from "./file.ts"
 
-export { Build as Build_ } from "./build.ts"
+export { Build } from "./build.ts"

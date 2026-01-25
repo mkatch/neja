@@ -1,4 +1,6 @@
 import * as path from "path"
+import { addDiscoveryTaskIfPromise, drainDiscoveryTasks } from "../def/scheduling.ts"
+import { config } from "./config.ts"
 
 const allFileItems = new Map<string, FileItem>()
 
@@ -168,21 +170,23 @@ function dir_aux(dirPath: string, originalPath: string): Dir {
 export function fileTree(dir: Dir, decl: DirDecl): Dir {
 	for (const [key, value] of Object.entries(decl)) {
 		if (key.endsWith("/")) {
-			if (DirDeclValue_isPipe(value)) {
-				throw new Error("Expected a directory record after a key ending with '/'")
-			}
 			const childDirPath = path.join(dir.path, key.slice(0, -1))
 			const childDir = queryDir(childDirPath) || new Dir(dir, childDirPath)
 			dir.children.push(childDir)
-			fileTree(childDir, value)
+
+			if (DirDeclValue_isPipe(value)) {
+				addDiscoveryTaskIfPromise(value.onFileItem(childDir))
+			} else {
+				fileTree(childDir, value)
+			}
 		} else if (DirDeclValue_isPipe(value)) {
 			if (key === ".") {
-				value.onFileItem(dir)
+				addDiscoveryTaskIfPromise(value.onFileItem(dir))
 			} else {
 				const filePath = path.join(dir.path, key)
 				const file = queryFile(filePath) || new File(dir, filePath)
 				dir.children.push(file)
-				value.onFileItem(file)
+				addDiscoveryTaskIfPromise(value.onFileItem(file))
 			}
 		} else {
 			throw new Error("Directories must be declared with names ending with '/'")
@@ -208,7 +212,10 @@ export function buildCounterpart(itemOrPath: FileItem | string): string {
 	return `${buildDir.path}${relativePath}`
 }
 
-export interface FileItemPipe<In extends FileItem = FileItem, Out extends In = In> {
+export interface FileItemPipe<
+	In extends FileItem = FileItem,
+	Out extends In | Promise<In> = In | Promise<In>,
+> {
 	onFileItem(item: In): Out
 }
 
@@ -217,4 +224,31 @@ export class FileItemArray<F extends FileItem> extends Array<FileItem> implement
 		this.push(item)
 		return item
 	}
+}
+
+export const imported: FileItemPipe = {
+	async onFileItem(item) {
+		if (item.type !== "dir") {
+			throw new Error("Only directories can be marked as imported.")
+		}
+		if (!item.path.startsWith(sourceDir.path)) {
+			throw new Error(`Imported directory must be under source dir: ${item.path}`)
+		}
+		const relativePath = item.path.slice(sourceDir.path.length + 1)
+		const importedProjectPath = path.join(config.sourceDir, relativePath, "neja.ts")
+
+		// Yuck! TODO: This actually doesn't work and can cause deadlocks.
+		await drainDiscoveryTasks()
+
+		const currentSourceDirBackup = currentSourceDir
+		currentSourceDir = item
+		currentBuildDir = dir(buildCounterpart(item))
+
+		await import(importedProjectPath)
+
+		await drainDiscoveryTasks()
+		currentSourceDir = currentSourceDirBackup
+
+		return item
+	},
 }

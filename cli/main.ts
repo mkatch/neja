@@ -1,8 +1,8 @@
 import * as path from "path"
 import { program } from "commander"
-import Module, { createRequire } from "module"
 import { drainBuilds } from "./gen.ts"
 import { Build } from "../def/build.ts"
+import { config } from "../def/config.ts"
 
 program
 	.name("neja") //
@@ -20,8 +20,10 @@ async function main(params: { file: string; chdir?: string }) {
 	}
 	const buildDir = process.cwd()
 
-	const require = createRequire(import.meta.url)
-	const project = require(projectFile) as Module
+	config.sourceDir = sourceDir
+	config.buildDir = buildDir
+
+	const project = (await import(projectFile)) as object
 
 	for (const [k, v] of Object.entries(project)) {
 		if (v instanceof Build) {
