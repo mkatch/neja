@@ -3,7 +3,7 @@ export class UniqueNameResolver {
 
 	claim(baseName: string): string {
 		let name = baseName
-		let conflict = this.conflicts.get(name)
+		const conflict = this.conflicts.get(name)
 		if (conflict) {
 			do {
 				name = `${baseName}_${conflict.nextIndex}`

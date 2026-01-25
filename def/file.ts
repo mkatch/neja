@@ -132,7 +132,7 @@ export function file(filePath: string): File {
 	}
 
 	const normalizedPath = path.normalize(filePath)
-	const { dir: parentPath, base: fileName } = path.parse(normalizedPath)
+	const parentPath = path.dirname(normalizedPath)
 	const parentDir = dir_aux(parentPath, filePath)
 	return new File(parentDir, normalizedPath)
 }
@@ -158,7 +158,7 @@ function dir_aux(dirPath: string, originalPath: string): Dir {
 		return existing
 	}
 
-	const { dir: parentPath, base: dirName } = path.parse(dirPath)
+	const parentPath = path.dirname(dirPath)
 	if (parentPath === dirPath || parentPath === "" || parentPath === ".") {
 		throw new Error(`Not in any of the allowed roots: ${originalPath}`)
 	}

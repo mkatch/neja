@@ -25,12 +25,14 @@ export abstract class Build {
 	}
 
 	get buildClass(): typeof Build {
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		return Object.getPrototypeOf(this).constructor as typeof Build
 	}
 
 	get vars(): { [key in keyof this]: RuleVar } {
 		// Cached at class level, but computed at instance level because only then we have all
 		// the properties.
+		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 		return (this.buildClass.vars ||= Object.fromEntries(
 			Object.keys(this).map((key) => {
 				let ninjaName: string
@@ -43,6 +45,7 @@ export abstract class Build {
 				}
 				return [key, new RuleVar(ninjaName)]
 			}),
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 		) as any)
 	}
 

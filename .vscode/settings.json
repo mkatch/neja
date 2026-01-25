@@ -1,4 +1,5 @@
 {
+	"eslint.validate": ["typescript"],
 	"cSpell.ignorePaths": ["package-lock.json", "node_modules", "build"],
 	"cSpell.words": ["neja", "srcs", "sourcedir", "builddir"]
 }
