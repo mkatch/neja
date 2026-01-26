@@ -1,6 +1,6 @@
 import * as path from "path"
-import { addDiscoveryTaskIfPromise, drainDiscoveryTasks } from "../def/scheduling.ts"
-import { config } from "./config.ts"
+import { addDiscoveryTaskIfPromise } from "../def/scheduling.ts"
+import { captureCurrentBuildDir, captureCurrentSourceDir, config } from "./env.ts"
 
 const allFileItems = new Map<string, FileItem>()
 
@@ -38,10 +38,8 @@ export class Dir {
 }
 
 export const sourceDir = new Dir(null, "${sourcedir}")
-export let currentSourceDir = sourceDir
 
 export const buildDir = new Dir(null, "${builddir}")
-export let currentBuildDir = buildDir
 
 export type FileItem = File | Dir
 
@@ -196,11 +194,11 @@ export function fileTree(dir: Dir, decl: DirDecl): Dir {
 }
 
 export function sourceTree(decl: DirDecl): Dir {
-	return fileTree(currentSourceDir, decl)
+	return fileTree(captureCurrentSourceDir(), decl)
 }
 
 export function buildTree(decl: DirDecl): Dir {
-	return fileTree(currentBuildDir, decl)
+	return fileTree(captureCurrentBuildDir(), decl)
 }
 
 export function buildCounterpart(itemOrPath: FileItem | string): string {
@@ -237,17 +235,7 @@ export const imported: FileItemPipe = {
 		const relativePath = item.path.slice(sourceDir.path.length + 1)
 		const importedProjectPath = path.join(config.sourceDir, relativePath, "neja.ts")
 
-		// Yuck! TODO: This actually doesn't work and can cause deadlocks.
-		await drainDiscoveryTasks()
-
-		const currentSourceDirBackup = currentSourceDir
-		currentSourceDir = item
-		currentBuildDir = dir(buildCounterpart(item))
-
 		await import(importedProjectPath)
-
-		await drainDiscoveryTasks()
-		currentSourceDir = currentSourceDirBackup
 
 		return item
 	},

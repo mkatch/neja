@@ -23,3 +23,5 @@ export {
 } from "./file.ts"
 
 export { Build } from "./build.ts"
+
+export { captureCurrentSourceDir } from "./env.ts"

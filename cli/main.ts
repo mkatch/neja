@@ -2,7 +2,7 @@ import * as path from "path"
 import { program } from "commander"
 import { drainBuilds } from "./gen.ts"
 import { Build } from "../def/build.ts"
-import { config } from "../def/config.ts"
+import { config } from "../def/env.ts"
 
 program
 	.name("neja") //
