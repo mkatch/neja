@@ -1,8 +1,12 @@
 import * as neja from "../../def/index.ts"
 import { Cat } from "./cat.neja.ts"
 
+export const flags = await neja.resolveFlags({
+	lineNumbers: neja.flag<boolean>({ required: true }),
+})
+
 export const poem = new Cat()
-poem.lineNumbers = true
+poem.lineNumbers = flags.lineNumbers
 
 neja.sourceTree({
 	"a.txt": poem,

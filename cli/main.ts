@@ -4,12 +4,12 @@ import { drainBuilds } from "./gen.ts"
 import { Build } from "../def/build.ts"
 import { config } from "../def/env.ts"
 
-program
+await program
 	.name("neja") //
 	.option("-f, --file <file>", "specify input neja file", "neja.ts")
 	.option("-C, --chdir <dir>", "change to directory before doing anything else")
 	.action(main)
-	.parse()
+	.parseAsync()
 
 async function main(params: { file: string; chdir?: string }) {
 	const projectFile = path.resolve(params.file)

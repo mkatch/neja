@@ -64,3 +64,12 @@ export function path_nestedRelative(from: string, to: string): string | null {
 	const isNested = rel !== ".." && !rel.startsWith(DOT_DOT_SEP_PATH) && !path.isAbsolute(rel)
 	return isNested ? rel : null
 }
+
+export async function fs_exists(filePath: string): Promise<boolean> {
+	try {
+		await fs.promises.lstat(filePath)
+		return true
+	} catch {
+		return false
+	}
+}
