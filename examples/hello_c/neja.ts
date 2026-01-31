@@ -1,4 +1,4 @@
-import * as neja from "../../def/index.ts"
+import { neja } from "neja"
 import { CCExe } from "./cc.neja.ts"
 
 const hello = new CCExe("hello")

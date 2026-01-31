@@ -1,5 +1,5 @@
 import * as path from "path"
-import { addDiscoveryTaskIfPromise } from "../def/scheduling.ts"
+import { addDiscoveryTaskIfPromise } from "./scheduling.ts"
 import { captureCurrentBuildDir, captureCurrentSourceDir, config } from "./env.ts"
 
 const allFileItems = new Map<string, FileItem>()

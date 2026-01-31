@@ -22,8 +22,17 @@ export {
 	sourceTree,
 } from "./file.ts"
 
-export { Build } from "./build.ts"
+export {
+	type NinjaRule,
+	//
+	Build,
+	RuleVar,
+	//
+	allBuilds,
+} from "./build.ts"
 
-export { captureCurrentSourceDir } from "./env.ts"
+export { config, captureCurrentSourceDir } from "./env.ts"
 
 export { resolveFlags, flag, setFlags } from "./flag.ts"
+
+export { drainDiscoveryTasks } from "./scheduling.ts"

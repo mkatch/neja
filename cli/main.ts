@@ -1,17 +1,10 @@
 import * as path from "path"
-import { program } from "commander"
+import { neja } from "neja"
 import { drainBuilds } from "./gen.ts"
-import { Build } from "../def/build.ts"
-import { config } from "../def/env.ts"
 
-await program
-	.name("neja") //
-	.option("-f, --file <file>", "specify input neja file", "neja.ts")
-	.option("-C, --chdir <dir>", "change to directory before doing anything else")
-	.action(main)
-	.parseAsync()
+async function main(): Promise<void> {
+	const params = parseArgs()
 
-async function main(params: { file: string; chdir?: string }) {
 	const projectFile = path.resolve(params.file)
 	const sourceDir = path.dirname(projectFile)
 
@@ -20,16 +13,66 @@ async function main(params: { file: string; chdir?: string }) {
 	}
 	const buildDir = process.cwd()
 
-	config.sourceDir = sourceDir
-	config.buildDir = buildDir
+	neja.config.sourceDir = sourceDir
+	neja.config.buildDir = buildDir
 
 	const project = (await import(projectFile)) as object
 
 	for (const [k, v] of Object.entries(project)) {
-		if (v instanceof Build) {
+		if (v instanceof neja.Build) {
 			v.exportName ||= k
 		}
 	}
 
 	await drainBuilds({ sourceDir, buildDir })
 }
+
+// NOTE: I wanted to use commander, but it is CommonJS and doesn't work well with esbuild+ESM. I'm
+// not gonna waste time on making it work, so let's do a simple ad-hoc parser for now.
+function parseArgs(): {
+	file: string
+	chdir?: string
+} {
+	const result: Partial<ReturnType<typeof parseArgs>> = {}
+
+	for (let i = 2; i < process.argv.length; ++i) {
+		const arg = process.argv[i]
+		if (arg.startsWith("-")) {
+			let argName: string
+			let argValue: string
+
+			const valueSeparatorIndex = arg.indexOf("=")
+			if (valueSeparatorIndex === -1) {
+				argName = arg
+				++i
+				argValue = process.argv[i]
+			} else {
+				argName = arg.slice(0, valueSeparatorIndex)
+				argValue = arg.slice(valueSeparatorIndex + 1)
+			}
+
+			switch (argName) {
+				case "-f":
+				case "--file": {
+					result.file = argValue
+					break
+				}
+
+				case "-C":
+				case "--chdir": {
+					result.chdir = argValue
+					break
+				}
+			}
+		} else {
+			// We don't have positional args yet.
+		}
+	}
+
+	return {
+		file: "neja.ts",
+		...result,
+	}
+}
+
+await main()

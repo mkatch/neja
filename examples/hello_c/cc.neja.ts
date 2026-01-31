@@ -1,4 +1,4 @@
-import * as neja from "../../def/index.ts"
+import { neja } from "neja"
 
 export class CCObj extends neja.Build {
 	obj: neja.File

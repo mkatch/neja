@@ -49,9 +49,7 @@ export async function resolveFlags<S extends FlagSchema>(
 	await Promise.all(
 		flagFilePathCandidates.map(async (flagFilePath) => {
 			if (await fs_exists(flagFilePath)) {
-				console.log("Importing flag file:", flagFilePath)
 				await import(flagFilePath)
-				console.log("Imported flag file:", flagFilePath)
 			}
 		}),
 	)

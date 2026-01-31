@@ -8,11 +8,13 @@
 	"main": "index.js",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"lint": "eslint ."
+		"lint": "eslint .",
+		"build-lib-types": "tsc -p ./tsconfig.lib-types.json --outDir ./build/types/neja && cp ./lib/package.json.template ./build/types/neja/package.json",
+		"build-lib": "esbuild ./lib/index.ts --bundle --platform=node --format=esm --outfile=./build/lib.js",
+		"build-cli": "esbuild ./cli/main.ts --bundle --platform=node --format=esm --external:neja --outfile=./build/cli.js && esbuild ./cli/node_hooks.ts --bundle --platform=node --format=esm --outfile=./build/node_hooks.js"
 	},
 	"dependencies": {
 		"@types/node": "^25.0.9",
-		"commander": "^14.0.2",
 		"esbuild": "^0.27.2"
 	},
 	"devDependencies": {

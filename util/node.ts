@@ -27,8 +27,6 @@ export function Error_captureStructuredStackTrace(constructorOpt?: Function): No
 		throw new Error("captureStackTrace() is not supported in this environment.")
 	}
 
-	// let stack: string | undefined
-
 	let evaluatedStack: unknown
 	let capturedTrace: NodeJS.CallSite[] | null = null
 

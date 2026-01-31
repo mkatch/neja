@@ -1,0 +1,9 @@
+{
+	"name": "neja",
+	"version": "0.0.0",
+	"description": "Typings for Neja build files",
+	"license": "ISC",
+	"author": "",
+	"type": "module",
+	"types": "./lib/index.d.ts"
+}

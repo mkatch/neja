@@ -1,4 +1,4 @@
-import * as neja from "../../../def/index.ts"
+import { neja } from "neja"
 import { poem } from "../neja.ts"
 
 neja.sourceTree({

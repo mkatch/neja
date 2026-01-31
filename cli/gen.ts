@@ -1,11 +1,10 @@
 import * as fs from "fs"
 import * as path from "path"
-import { allBuilds, type Build, RuleVar } from "../def/build.ts"
+import { neja } from "neja"
 import { Array_sortAndRemoveDuplicates } from "../util/array.ts"
 import { WriteStream_submit } from "../util/node.ts"
 import { UniqueNameResolver } from "./unique_name_resolver.ts"
 import { formatBuildChunk, formatRuleChunk } from "./format.ts"
-import { drainDiscoveryTasks } from "../def/scheduling.ts"
 
 const COMMAND_PARAM_PATTERN = /([^$]|^)\${([^}]+)}/gm
 const uniqueRuleNames = new UniqueNameResolver()
@@ -29,8 +28,8 @@ export async function drainBuilds(params: { sourceDir: string; buildDir: string 
 				"include rules.ninja\n\n",
 		)
 
-		for (let i = 0; i < allBuilds.length; ++i) {
-			const build = allBuilds[i]
+		for (let i = 0; i < neja.allBuilds.length; ++i) {
+			const build = neja.allBuilds[i]
 			await drainBuilds_single(build, ruleOut, buildOut)
 		}
 	} finally {
@@ -40,7 +39,7 @@ export async function drainBuilds(params: { sourceDir: string; buildDir: string 
 }
 
 async function drainBuilds_single(
-	build: Build,
+	build: neja.Build,
 	ruleOut: fs.WriteStream,
 	buildOut: fs.WriteStream,
 ): Promise<void> {
@@ -51,7 +50,7 @@ async function drainBuilds_single(
 
 	const buildClass = build.buildClass
 
-	await drainDiscoveryTasks()
+	await neja.drainDiscoveryTasks()
 
 	const {
 		command,
@@ -96,7 +95,7 @@ async function drainBuilds_single(
 }
 
 function drainBuilds_scanVars(
-	availableVars: Record<string, RuleVar>,
+	availableVars: Record<string, neja.RuleVar>,
 	text: string,
 	usedVars: string[],
 ) {

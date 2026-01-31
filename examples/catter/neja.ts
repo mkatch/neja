@@ -1,4 +1,4 @@
-import * as neja from "../../def/index.ts"
+import { neja } from "neja"
 import { Cat } from "./cat.neja.ts"
 
 export const flags = await neja.resolveFlags({

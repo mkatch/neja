@@ -14,7 +14,7 @@ echo "=== Running Neja ========================================================"
 echo
 
 mkdir -p build
-node ../../cli/main.ts -C build
+node --import ../../build/node_hooks.js ../../build/cli.js -C build
 
 echo
 echo "=== Generated: rules.ninja =============================================="

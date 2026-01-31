@@ -1,10 +1,10 @@
 import * as path from "path"
-import { type Build, type NinjaRule } from "../def/build.ts"
+import type { neja } from "neja"
 import { UniqueNameResolver } from "./unique_name_resolver.ts"
 
 const uniqueAnonBuildNames = new UniqueNameResolver()
 
-export function formatRuleChunk(rule: NinjaRule): string {
+export function formatRuleChunk(rule: neja.NinjaRule): string {
 	const { uniqueName, command, description } = rule
 	let chunk = `rule ${uniqueName}\n  command = ${command}\n`
 	if (description) {
@@ -14,7 +14,7 @@ export function formatRuleChunk(rule: NinjaRule): string {
 	return chunk
 }
 
-export function formatBuildChunk(build: Build, rule: NinjaRule): string {
+export function formatBuildChunk(build: neja.Build, rule: neja.NinjaRule): string {
 	let chunk = ""
 	let outsChunk = build.outs.map((o) => `${o}`).join(" ")
 

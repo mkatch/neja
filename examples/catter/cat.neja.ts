@@ -1,4 +1,4 @@
-import * as neja from "../../def/index.ts"
+import { neja } from "neja"
 
 export class Cat extends neja.Build implements neja.FileItemPipe {
 	ins = new neja.FileItemArray()
