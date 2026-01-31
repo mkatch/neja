@@ -1,4 +1,4 @@
-import { isPromiseLike } from "../util/async.ts"
+import { isPromiseLike } from "@util/async.ts"
 
 const discoveryTasks = new Array<PromiseLike<unknown>>()
 

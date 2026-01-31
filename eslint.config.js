@@ -34,6 +34,12 @@ export default [
 	},
 	{
 		rules: {
+			"no-restricted-imports": [
+				"error",
+				{
+					patterns: ["../*"],
+				},
+			],
 			"@typescript-eslint/no-unused-vars": [
 				"warn",
 				{

@@ -1,5 +1,7 @@
 {
+	"typescript.preferences.preferTypeOnlyAutoImports": true,
+	"typescript.preferences.importModuleSpecifier": "shortest",
 	"eslint.validate": ["typescript"],
 	"cSpell.ignorePaths": ["package-lock.json", "node_modules", "build"],
-	"cSpell.words": ["neja", "srcs", "sourcedir", "builddir"]
+	"cSpell.words": ["builddir", "catter", "neja", "sourcedir", "srcs"]
 }

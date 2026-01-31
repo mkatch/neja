@@ -1,7 +1,7 @@
 import * as path from "path"
 import { captureAbsoluteCurrentNejaFilePath, config } from "./env.ts"
-import { fs_exists } from "../util/node.ts"
-import type { Expand } from "../util/type.ts"
+import { fs_exists } from "@util/node.ts"
+import type { Expand } from "@util/type.ts"
 
 const FlagSchema_valueType = Symbol("FlagSchema_type")
 type FlagSchemaValue<T> = {

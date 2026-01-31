@@ -1,5 +1,5 @@
 import * as path from "path"
-import { Error_captureStructuredStackTrace, path_nestedRelative } from "../util/node.ts"
+import { Error_captureStructuredStackTrace, path_nestedRelative } from "@util/node.ts"
 import { buildCounterpart, Dir, dir, sourceDir } from "./file.ts"
 
 export const config = {

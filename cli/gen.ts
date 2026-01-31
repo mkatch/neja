@@ -1,8 +1,8 @@
 import * as fs from "fs"
 import * as path from "path"
 import { neja } from "neja"
-import { Array_sortAndRemoveDuplicates } from "../util/array.ts"
-import { WriteStream_submit } from "../util/node.ts"
+import { Array_sortAndRemoveDuplicates } from "@util/array.ts"
+import { WriteStream_submit } from "@util/node.ts"
 import { UniqueNameResolver } from "./unique_name_resolver.ts"
 import { formatBuildChunk, formatRuleChunk } from "./format.ts"
 

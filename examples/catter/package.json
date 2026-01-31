@@ -1,0 +1,7 @@
+{
+	"name": "catter",
+	"type": "module",
+	"imports": {
+		"#catter/*": "./*"
+	}
+}

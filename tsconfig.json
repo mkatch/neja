@@ -5,6 +5,9 @@
 		"skipLibCheck": true,
 		"moduleResolution": "bundler",
 		"rootDir": "./",
+		"paths": {
+			"@util/*": ["./util/*"]
+		},
 
 		// It is important that no code from ./lib is directly imported from any other
 		// place: it has to be imported as an external dependency. That's because the
