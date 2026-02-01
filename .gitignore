@@ -1,5 +1,6 @@
 node_modules
 build
+*.local.neja.ts
 
 # We want to be self-hosted and npm is used only to bootstrap.
 package-lock.json

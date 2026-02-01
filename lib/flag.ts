@@ -45,6 +45,10 @@ export async function resolveFlags<S extends FlagSchema>(
 		path.join(config.sourceDir, "flags.neja.js"),
 		path.join(currentSourceDir, "flags.neja.ts"),
 		path.join(currentSourceDir, "flags.neja.js"),
+		path.join(config.sourceDir, "flags.local.neja.ts"),
+		path.join(config.sourceDir, "flags.local.neja.js"),
+		path.join(currentSourceDir, "flags.local.neja.ts"),
+		path.join(currentSourceDir, "flags.local.neja.js"),
 	]
 	await Promise.all(
 		flagFilePathCandidates.map(async (flagFilePath) => {
