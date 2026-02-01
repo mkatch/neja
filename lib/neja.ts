@@ -5,6 +5,7 @@ export {
 	Dir,
 	File,
 	FileItemArray,
+	SingleFileItemPipe,
 	//
 	buildCounterpart,
 	buildFile,

@@ -240,3 +240,19 @@ export const imported: FileItemPipe = {
 		return item
 	},
 }
+
+export class SingleFileItemPipe implements FileItemPipe {
+	item: FileItem | null = null
+
+	onFileItem(item: FileItem): FileItem {
+		if (this.item) {
+			throw new Error(`Already assigned an item: ${this.item.path}`)
+		}
+		this.item = item
+		return item
+	}
+
+	toString(): string {
+		return this.item?.toString() ?? ""
+	}
+}
