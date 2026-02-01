@@ -48,8 +48,16 @@ export function formatBuildChunk(build: neja.Build, rule: neja.NinjaRule): strin
 		chunk += ` ${insChunk}`
 	}
 
-	if (build.implicitIns.length > 0) {
-		const implicitInsChunk = build.implicitIns.map((i) => `${i}`).join(" ")
+	const formattedImplicitIns = new Array<string>()
+	if (build.alwaysDirty) {
+		formattedImplicitIns.push("always_dirty")
+	}
+	for (const implicitIn of build.implicitIns) {
+		formattedImplicitIns.push(`${implicitIn}`)
+	}
+
+	if (formattedImplicitIns.length > 0) {
+		const implicitInsChunk = formattedImplicitIns.join(" ")
 		chunk += ` | ${implicitInsChunk}`
 	}
 

@@ -9,8 +9,8 @@ export class EsbuildBundle extends neja.Build {
 	entryPoint = new neja.SingleFileItemPipe()
 	outFile = new neja.SingleFileItemPipe()
 	external = new Array<string>()
-
 	externalFlags = ""
+	alwaysDirty = true
 
 	rule() {
 		if (!this.entryPoint.item) {
@@ -20,17 +20,16 @@ export class EsbuildBundle extends neja.Build {
 			throw new Error("EsbuildBundle requires an output file.")
 		}
 
-		this.ins = [this.entryPoint.item]
 		this.outs = [this.outFile.item]
 
 		// TODO: make optional
 		this.externalFlags = this.external.map((ext) => `--external:${ext}`).join(" ")
 
-		const { ins, outs, externalFlags } = this.vars
+		const { entryPoint, outs, externalFlags } = this.vars
 
 		return {
-			command: `${flags.esbuildCommand} ${ins} --bundle --platform=node --format=esm ${externalFlags} --outfile=${outs}`,
-			description: `Create bundle ${outs} from entry point ${ins}.`,
+			command: `${flags.esbuildCommand} ${entryPoint} --bundle --platform=node --format=esm ${externalFlags} --outfile=${outs}`,
+			description: `Create bundle ${outs} from entry point ${entryPoint}.`,
 		}
 	}
 }
@@ -38,6 +37,7 @@ export class EsbuildBundle extends neja.Build {
 export class Tsc extends neja.Build {
 	project = new neja.SingleFileItemPipe()
 	outDir = new neja.SingleFileItemPipe()
+	alwaysDirty = true
 
 	rule() {
 		if (!this.project.item) {
@@ -47,11 +47,13 @@ export class Tsc extends neja.Build {
 			throw new Error("Tsc requires an output directory.")
 		}
 
-		const { project, outDir } = this.vars
+		this.ins = [this.project.item]
+
+		const { ins, outDir } = this.vars
 
 		return {
-			command: `${flags.tscCommand} -p ${project} --outDir ${outDir}`,
-			description: `Compile TypeScript project ${project} to output directory ${outDir}.`,
+			command: `${flags.tscCommand} -p ${ins} --outDir ${outDir}`,
+			description: `Compile TypeScript project ${ins} to output directory ${outDir}.`,
 		}
 	}
 }

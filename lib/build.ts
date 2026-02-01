@@ -12,6 +12,7 @@ export abstract class Build {
 	outs: readonly FileItem[] = []
 	implicitIns: readonly FileItem[] = []
 	exportName: string = ""
+	alwaysDirty = false
 
 	constructor() {
 		// Static initialization runs on first instantiation, because we need the most specific
