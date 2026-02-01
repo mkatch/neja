@@ -20,6 +20,7 @@ export {
 	queryFileItem,
 	queryFileItemNaive,
 	queryFileNaive,
+	sourceFile,
 	sourceTree,
 } from "./file.ts"
 
@@ -30,9 +31,10 @@ export {
 	RuleVar,
 	//
 	allBuilds,
+	rerun,
 } from "./build.ts"
 
-export { config, captureCurrentSourceDir } from "./env.ts"
+export { config, captureCurrentSourceDir, maybeNejafile } from "./env.ts"
 
 export { resolveFlags, flag, setFlags } from "./flag.ts"
 

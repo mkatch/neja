@@ -11,7 +11,7 @@
 		"lint": "eslint .",
 		"build-lib-types": "tsc -p ./tsconfig.lib-types.json --outDir ./build/types/neja && cp ./lib/package.json.template ./build/types/neja/package.json",
 		"build-lib": "esbuild ./lib/index.ts --bundle --platform=node --format=esm --outfile=./build/lib.js",
-		"build-cli": "esbuild ./cli/main.ts --bundle --platform=node --format=esm --external:neja --outfile=./build/cli.js && esbuild ./cli/node_hooks.ts --bundle --platform=node --format=esm --outfile=./build/node_hooks.js"
+		"build-cli": "esbuild ./cli/main.ts --bundle --platform=node --format=esm --external:neja --outfile=./build/cli_main.js && esbuild ./cli/launcher.ts --bundle --platform=node --format=esm --outfile=./build/cli.js"
 	},
 	"dependencies": {
 		"@types/node": "^25.0.9",

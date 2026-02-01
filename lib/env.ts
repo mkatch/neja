@@ -1,6 +1,5 @@
-import * as path from "path"
 import { Error_captureStructuredStackTrace, path_nestedRelative } from "@util/node.ts"
-import { buildCounterpart, Dir, dir, sourceDir } from "./file.ts"
+import { buildCounterpart, File, Dir, dir, sourceFile } from "./file.ts"
 
 export const config = {
 	sourceDir: "",
@@ -14,46 +13,42 @@ type FlagExchange =
 	| { stage: "provided"; value: unknown }
 	| { stage: "consumed" }
 
-const NEJA_FILE_PATH_PATTERN = /(^|[/.\\])neja\.[tj]s$/
+const NEJAFILE_PATH_PATTERN = /(^|[/.\\])neja\.[tj]s$/
 
-export function captureAbsoluteCurrentNejaFilePath(): string {
-	const stack = Error_captureStructuredStackTrace(captureAbsoluteCurrentNejaFilePath)
-
-	let nejaFileUrl = ""
-	for (const callSite of stack) {
-		const fileUrl = callSite.getFileName()
-		if (fileUrl && NEJA_FILE_PATH_PATTERN.test(fileUrl)) {
-			nejaFileUrl = fileUrl
-			break
-		}
+export function maybeNejafile(filePathOrUrl: string): File | null {
+	if (!NEJAFILE_PATH_PATTERN.test(filePathOrUrl)) {
+		return null
 	}
 
-	if (!nejaFileUrl) {
-		throw new Error("Can't find a neja-file on the current stack trace.")
-	}
-
-	const absNejaFilePath = nejaFileUrl.startsWith("file://")
-		? nejaFileUrl.substring("file://".length)
-		: nejaFileUrl
-
-	return absNejaFilePath
-}
-
-export function captureCurrentSourceDir(): Dir {
-	const absNejaFilePath = captureAbsoluteCurrentNejaFilePath()
+	const absNejaFilePath = filePathOrUrl.startsWith("file://")
+		? filePathOrUrl.substring("file://".length)
+		: filePathOrUrl
 
 	const relNejaFilePath = path_nestedRelative(config.sourceDir, absNejaFilePath)
 	if (!relNejaFilePath) {
-		throw new Error(
-			`Detected neja-file "${absNejaFilePath}" is outside the source directory of the active project: "${config.sourceDir}`,
-		)
+		return null
 	}
 
-	const relCurrentSourceDirPath = path.dirname(relNejaFilePath)
-	const currentSourceDirPath = path.join(sourceDir.path, relCurrentSourceDirPath)
-	const currentSourceDir = dir(currentSourceDirPath)
+	return sourceFile(relNejaFilePath)
+}
 
-	return currentSourceDir
+export function captureCurrentNejafile(): File {
+	const stack = Error_captureStructuredStackTrace(captureCurrentNejafile)
+
+	for (const callSite of stack) {
+		const fileUrl = callSite.getFileName()
+		const nejafile = fileUrl && maybeNejafile(fileUrl)
+		if (nejafile) {
+			return nejafile
+		}
+	}
+
+	throw new Error("Can't find a Nejafile on the current stack trace.")
+}
+
+export function captureCurrentSourceDir(): Dir {
+	const nejafile = captureCurrentNejafile()
+	return nejafile.parent
 }
 
 export function captureCurrentBuildDir(): Dir {

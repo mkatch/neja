@@ -1,4 +1,5 @@
-import { type FileItem } from "./file.ts"
+import type { FileItem } from "./file.ts"
+import { buildDir, buildFile, FileItemArray, SingleFileItemPipe } from "./file.ts"
 
 export const allBuilds = new Array<Build>()
 
@@ -9,6 +10,7 @@ export abstract class Build {
 
 	ins: readonly FileItem[] = []
 	outs: readonly FileItem[] = []
+	implicitIns: readonly FileItem[] = []
 	exportName: string = ""
 
 	constructor() {
@@ -49,12 +51,43 @@ export abstract class Build {
 		) as any)
 	}
 
+	effect(): void {}
+
 	abstract rule(): {
 		command: string
 		name?: string
 		description?: string
+		generator?: boolean
 	}
 }
+
+export const rerun = new (class RerunNeja extends Build {
+	mainNejafile = new SingleFileItemPipe()
+	implicitIns = new FileItemArray()
+
+	outs = [buildFile("rules.ninja"), buildFile("build.ninja")]
+
+	commandBase = ""
+
+	rule() {
+		if (!this.mainNejafile.item) {
+			throw new Error("RerunNeja requires the main Nejafile.")
+		}
+		if (!this.commandBase) {
+			throw new Error("RerunNeja requires the neja command base.")
+		}
+
+		this.ins = [this.mainNejafile.item]
+
+		const { ins } = this.vars
+
+		return {
+			command: `${this.commandBase} -f ${ins} --chdir=${buildDir}`,
+			description: "Rerun neja",
+			generator: true,
+		}
+	}
+})()
 
 export class RuleVar {
 	ninjaName: string
@@ -72,4 +105,5 @@ export type NinjaRule = {
 	command: string
 	description: string
 	vars: string[]
+	generator: boolean
 }

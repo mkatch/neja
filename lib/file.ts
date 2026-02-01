@@ -50,6 +50,11 @@ function FileItem_register(item: FileItem): void {
 	allFileItems.set(item.path, item)
 }
 
+export function sourceFile(relativeFilePath: string): File {
+	const fullPath = path.join(sourceDir.path, relativeFilePath)
+	return file(fullPath)
+}
+
 export function buildFile(relativeFilePath: string): File {
 	const fullPath = path.join(buildDir.path, relativeFilePath)
 	return file(fullPath)
@@ -163,6 +168,17 @@ function dir_aux(dirPath: string, originalPath: string): Dir {
 
 	const parentDir = dir_aux(parentPath, originalPath)
 	return new Dir(parentDir, dirPath)
+}
+
+export function absolutePath(item: FileItem): string {
+	// TODO: This is kind of stupid. We should not have to parse and slice these paths like that.
+	if (item.path.startsWith("${sourcedir}")) {
+		return path.join(config.sourceDir, item.path.slice("${sourcedir}".length))
+	} else if (item.path.startsWith("${builddir}")) {
+		return path.join(config.buildDir, item.path.slice("${builddir}".length))
+	} else {
+		throw new Error(`Cannot get absolute path for item: ${item.path}`)
+	}
 }
 
 export function fileTree(dir: Dir, decl: DirDecl): Dir {

@@ -1,22 +1,28 @@
 import * as path from "path"
 import { neja } from "neja"
-import { drainBuilds } from "./gen.ts"
+import { createOutputStreams, drainBuilds, resolveRules, writeHeaders } from "./gen.ts"
 
-async function main(): Promise<void> {
+export default async function main(imports: string[]): Promise<void> {
 	const params = parseArgs()
 
-	const projectFile = path.resolve(params.file)
-	const sourceDir = path.dirname(projectFile)
+	const absProjectFilePath = path.resolve(params.file)
+	const sourceDirPath = path.dirname(absProjectFilePath)
+	const relProjectFilePath = path.basename(absProjectFilePath)
 
 	if (params.chdir) {
 		process.chdir(params.chdir)
 	}
 	const buildDir = process.cwd()
 
-	neja.config.sourceDir = sourceDir
+	neja.config.sourceDir = sourceDirPath
 	neja.config.buildDir = buildDir
 
-	const project = (await import(projectFile)) as object
+	const projectFile = neja.sourceFile(relProjectFilePath)
+	neja.rerun.mainNejafile.onFileItem(projectFile)
+
+	neja.rerun.commandBase = params.commandBase
+
+	const project = (await import(absProjectFilePath)) as object
 
 	for (const [k, v] of Object.entries(project)) {
 		if (v instanceof neja.Build) {
@@ -24,16 +30,28 @@ async function main(): Promise<void> {
 		}
 	}
 
-	await drainBuilds({ sourceDir, buildDir })
+	const { ruleOut, buildOut, endOutput } = createOutputStreams({ buildDir })
+	try {
+		await writeHeaders({ ruleOut, buildOut, sourceDir: sourceDirPath, buildDir })
+
+		await drainBuilds()
+
+		await resolveRules({ ruleOut, buildOut, imports })
+	} finally {
+		endOutput()
+	}
 }
 
 // NOTE: I wanted to use commander, but it is CommonJS and doesn't work well with esbuild+ESM. I'm
 // not gonna waste time on making it work, so let's do a simple ad-hoc parser for now.
 function parseArgs(): {
+	commandBase: string
 	file: string
 	chdir?: string
 } {
 	const result: Partial<ReturnType<typeof parseArgs>> = {}
+
+	const commandBase = `${process.argv[0]} ${process.argv[1]}`
 
 	for (let i = 2; i < process.argv.length; ++i) {
 		const arg = process.argv[i]
@@ -71,8 +89,7 @@ function parseArgs(): {
 
 	return {
 		file: "neja.ts",
+		commandBase,
 		...result,
 	}
 }
-
-await main()

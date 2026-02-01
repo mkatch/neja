@@ -1,7 +1,8 @@
 import * as path from "path"
-import { captureAbsoluteCurrentNejaFilePath, config } from "./env.ts"
+import { captureCurrentSourceDir, config } from "./env.ts"
 import { fs_exists } from "@util/node.ts"
 import type { Expand } from "@util/type.ts"
+import { absolutePath } from "./file.ts"
 
 const FlagSchema_valueType = Symbol("FlagSchema_type")
 type FlagSchemaValue<T> = {
@@ -37,18 +38,19 @@ export async function resolveFlags<S extends FlagSchema>(
 		}
 	}
 
-	const currentNejaFilePath = captureAbsoluteCurrentNejaFilePath()
-	const currentSourceDir = path.dirname(currentNejaFilePath)
+	const rootDirPath = config.sourceDir
+	const currentSourceDir = captureCurrentSourceDir()
+	const currentSourceDirPath = absolutePath(currentSourceDir)
 
 	const flagFilePathCandidates = [
-		path.join(config.sourceDir, "flags.neja.ts"),
-		path.join(config.sourceDir, "flags.neja.js"),
-		path.join(currentSourceDir, "flags.neja.ts"),
-		path.join(currentSourceDir, "flags.neja.js"),
-		path.join(config.sourceDir, "flags.local.neja.ts"),
-		path.join(config.sourceDir, "flags.local.neja.js"),
-		path.join(currentSourceDir, "flags.local.neja.ts"),
-		path.join(currentSourceDir, "flags.local.neja.js"),
+		path.join(rootDirPath, "flags.neja.ts"),
+		path.join(rootDirPath, "flags.neja.js"),
+		path.join(currentSourceDirPath, "flags.neja.ts"),
+		path.join(currentSourceDirPath, "flags.neja.js"),
+		path.join(rootDirPath, "flags.local.neja.ts"),
+		path.join(rootDirPath, "flags.local.neja.js"),
+		path.join(currentSourceDirPath, "flags.local.neja.ts"),
+		path.join(currentSourceDirPath, "flags.local.neja.js"),
 	]
 	await Promise.all(
 		flagFilePathCandidates.map(async (flagFilePath) => {

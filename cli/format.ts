@@ -5,10 +5,13 @@ import { UniqueNameResolver } from "./unique_name_resolver.ts"
 const uniqueAnonBuildNames = new UniqueNameResolver()
 
 export function formatRuleChunk(rule: neja.NinjaRule): string {
-	const { uniqueName, command, description } = rule
+	const { uniqueName, command, description, generator } = rule
 	let chunk = `rule ${uniqueName}\n  command = ${command}\n`
 	if (description) {
 		chunk += `  description = ${description}\n`
+	}
+	if (generator) {
+		chunk += `  generator = 1\n`
 	}
 	chunk += "\n"
 	return chunk
@@ -38,15 +41,24 @@ export function formatBuildChunk(build: neja.Build, rule: neja.NinjaRule): strin
 		outsChunk = path.join("anon", uniqueName)
 	}
 
-	const insChunk = build.ins.map((i) => `${i}`).join(" ")
-	chunk += `build ${outsChunk}: ${rule.uniqueName} ${insChunk}\n`
+	chunk += `build ${outsChunk}: ${rule.uniqueName}`
+
+	if (build.ins.length > 0) {
+		const insChunk = build.ins.map((i) => `${i}`).join(" ")
+		chunk += ` ${insChunk}`
+	}
+
+	if (build.implicitIns.length > 0) {
+		const implicitInsChunk = build.implicitIns.map((i) => `${i}`).join(" ")
+		chunk += ` | ${implicitInsChunk}`
+	}
 
 	const values = build as unknown as Record<string, unknown>
 	for (const key of rule.vars) {
 		const value = values[key]
-		chunk += `  ${key} = ${value}\n`
+		chunk += `\n  ${key} = ${value}`
 	}
 
-	chunk += "\n"
+	chunk += "\n\n"
 	return chunk
 }

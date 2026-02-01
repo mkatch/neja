@@ -32,12 +32,14 @@ export class CCExe extends neja.Build implements neja.FileItemPipe {
 		this.outs = [neja.buildFile(name)]
 	}
 
-	rule() {
+	effect = () => {
 		this.ins = this.srcs.map((src) => {
 			const ccObj = new CCObj(src)
 			return ccObj.obj
 		})
+	}
 
+	rule() {
 		const { ins, outs } = this.vars
 
 		return {

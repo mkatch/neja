@@ -1,24 +1,24 @@
 import { neja } from "neja"
 import { EsbuildBundle, Tsc } from "./rules.neja.ts"
 
-export const cliBinary = new EsbuildBundle()
-cliBinary.external.push("neja")
+const cliLauncher = new EsbuildBundle()
 
-export const cliNodeHooks = new EsbuildBundle()
+const cliMain = new EsbuildBundle()
+cliMain.external.push("neja")
 
 export const libTypes = new Tsc()
 
 neja.sourceTree({
 	"cli/": {
-		"main.ts": cliBinary.entryPoint,
-		"node_hooks.ts": cliNodeHooks.entryPoint,
+		"launcher.ts": cliLauncher.entryPoint,
+		"main.ts": cliMain.entryPoint,
 	},
 	"tsconfig.lib-types.json": libTypes.project,
 })
 
 neja.buildTree({
-	"cli.js": cliBinary.outFile,
-	"node_hooks.js": cliNodeHooks.outFile,
+	"cli.js": cliLauncher.outFile,
+	"cli_main.js": cliMain.outFile,
 	"types/": {
 		"neja/": libTypes.outDir,
 	},
