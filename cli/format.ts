@@ -64,7 +64,9 @@ export function formatBuildChunk(build: neja.Build, rule: neja.NinjaRule): strin
 	const values = build as unknown as Record<string, unknown>
 	for (const key of rule.vars) {
 		const value = values[key]
-		chunk += `\n  ${key} = ${value}`
+		if (value !== undefined) {
+			chunk += `\n  ${key} = ${value as unknown}`
+		}
 	}
 
 	chunk += "\n\n"

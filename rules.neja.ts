@@ -9,7 +9,7 @@ export class EsbuildBundle extends neja.Build {
 	entryPoint = new neja.SingleFileItemPipe()
 	outFile = new neja.SingleFileItemPipe()
 	external = new Array<string>()
-	externalFlags = ""
+	externalFlags?: string
 	alwaysDirty = true
 
 	rule() {
@@ -22,8 +22,9 @@ export class EsbuildBundle extends neja.Build {
 
 		this.outs = [this.outFile.item]
 
-		// TODO: make optional
-		this.externalFlags = this.external.map((ext) => `--external:${ext}`).join(" ")
+		if (this.external.length > 0) {
+			this.externalFlags = this.external.map((ext) => `--external:${ext}`).join(" ")
+		}
 
 		const { entryPoint, outs, externalFlags } = this.vars
 
