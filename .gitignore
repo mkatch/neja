@@ -1,5 +1,6 @@
 node_modules
 build
+.neja-build
 *.local.neja.ts
 
 # We want to be self-hosted and npm is used only to bootstrap.

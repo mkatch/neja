@@ -63,11 +63,51 @@ export function path_nestedRelative(from: string, to: string): string | null {
 	return isNested ? rel : null
 }
 
+/**
+ * Check whether a file or directory exists at the given path.
+ *
+ * If the path points to a symbolic link, checks the existence of the link itself, not its target.
+ */
 export async function fs_exists(filePath: string): Promise<boolean> {
 	try {
 		await fs.promises.lstat(filePath)
 		return true
 	} catch {
 		return false
+	}
+}
+
+/**
+ * Create a symbolic link at {@link link} pointing to {@link target}.
+ *
+ * @param recursivelyCreateDirs If true, recursively create parent directories of {@link link} if they do not exist. Default: false.
+ * @param overrideIfExistsAsLink If true, and if {@link link} already exists as a symbolic link, override it. Default: false.
+ */
+export async function fs_symlink(
+	target: string,
+	link: string,
+	params?: {
+		type?: fs.symlink.Type
+		recursivelyCreateDirs?: boolean
+		overrideIfExistsAsLink?: boolean
+	},
+): Promise<void> {
+	const { recursivelyCreateDirs = false, overrideIfExistsAsLink = false, type } = params || {}
+	if (recursivelyCreateDirs) {
+		const dirPath = path.dirname(link)
+		await fs.promises.mkdir(dirPath, { recursive: true })
+	}
+	try {
+		await fs.promises.symlink(target, link, type)
+	} catch (e) {
+		if (overrideIfExistsAsLink && (e as NodeJS.ErrnoException).code === "EEXIST") {
+			const stat = await fs.promises.lstat(link)
+			if (stat.isSymbolicLink()) {
+				await fs.promises.unlink(link)
+				await fs.promises.symlink(target, link, type)
+				return
+			}
+		}
+		throw e
 	}
 }

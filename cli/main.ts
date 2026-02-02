@@ -1,6 +1,7 @@
 import * as path from "path"
 import { neja } from "neja"
 import { createOutputStreams, drainBuilds, resolveRules, writeHeaders } from "./gen.ts"
+import { fs_symlink } from "@util/node.ts"
 
 export default async function main(imports: string[]): Promise<void> {
 	const params = parseArgs()
@@ -9,10 +10,18 @@ export default async function main(imports: string[]): Promise<void> {
 	const sourceDirPath = path.dirname(absProjectFilePath)
 	const relProjectFilePath = path.basename(absProjectFilePath)
 
+	const buildDirLinkPath = path.join(sourceDirPath, ".neja-build")
+
 	if (params.chdir) {
 		process.chdir(params.chdir)
 	}
 	const buildDir = process.cwd()
+
+	await fs_symlink(buildDir, buildDirLinkPath, {
+		type: "dir",
+		recursivelyCreateDirs: true,
+		overrideIfExistsAsLink: true,
+	})
 
 	neja.config.sourceDir = sourceDirPath
 	neja.config.buildDir = buildDir
