@@ -41,3 +41,5 @@ export { resolveFlags, flag, setFlags } from "./flag.ts"
 export { drainDiscoveryTasks } from "./scheduling.ts"
 
 export { symlink } from "./symlink.ts"
+
+export { mkdir } from "./mkdir.ts"

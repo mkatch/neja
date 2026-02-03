@@ -78,6 +78,33 @@ export async function fs_exists(filePath: string): Promise<boolean> {
 }
 
 /**
+ * Create a directory at the specified path.
+ *
+ * @param throwIfExists If true, throw an error if any entity already exists at the path. Note that even setting to false, it will still throw if the existing entity is not a directory. Default: true.
+ * @param recursive If true, recursively create parent directories if they do not exist. Also prevents throwing if the directory already exists, regardless of `throwIfExists`. Default: false.
+ */
+export async function fs_mkdir(
+	dirPath: string,
+	params?: {
+		throwIfExists?: boolean
+		recursive?: boolean
+	},
+): Promise<void> {
+	const { recursive = false, throwIfExists = true } = params || {}
+	try {
+		await fs.promises.mkdir(dirPath, { recursive })
+	} catch (e) {
+		if (!throwIfExists && (e as NodeJS.ErrnoException).code === "EEXIST") {
+			const stat = await fs.promises.lstat(dirPath)
+			if (stat.isDirectory()) {
+				return
+			}
+		}
+		throw e
+	}
+}
+
+/**
  * Create a symbolic link at {@link link} pointing to {@link target}.
  *
  * @param recursivelyCreateDirs If true, recursively create parent directories of {@link link} if they do not exist. Default: false.
