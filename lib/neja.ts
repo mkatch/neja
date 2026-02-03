@@ -39,3 +39,5 @@ export { config, captureCurrentSourceDir, maybeNejafile } from "./env.ts"
 export { resolveFlags, flag, setFlags } from "./flag.ts"
 
 export { drainDiscoveryTasks } from "./scheduling.ts"
+
+export { symlink } from "./symlink.ts"

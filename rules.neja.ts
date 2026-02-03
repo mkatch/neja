@@ -1,6 +1,8 @@
+import * as path from "path"
 import { neja } from "neja"
 
 export const flags = await neja.resolveFlags({
+	nodePath: neja.flag<string>({ required: true }),
 	esbuildCommand: neja.flag<string>({ required: true }),
 	tscCommand: neja.flag<string>({ required: true }),
 })
@@ -80,5 +82,22 @@ export class Cp extends neja.Build {
 			command: `cp ${ins} ${outs}`,
 			description: `Copy ${ins} to ${outs}.`,
 		}
+	}
+}
+
+const nodeModulesPath = path.join(flags.nodePath, "lib", "node_modules")
+
+export function nodeModuleLink(parent?: string): neja.FileItemPipe {
+	return {
+		onFileItem(item: neja.FileItem): neja.FileItem {
+			if (item.type !== "dir") {
+				throw new Error("nodeModuleLink can only be used with directory items.")
+			}
+			const moduleName = path.basename(item.path)
+			const target = parent
+				? path.join(nodeModulesPath, parent, "node_modules", moduleName)
+				: path.join(nodeModulesPath, moduleName)
+			return neja.symlink(target).onFileItem(item)
+		},
 	}
 }

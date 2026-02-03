@@ -19,7 +19,20 @@ export default async function main(imports: string[]): Promise<void> {
 
 	await fs_symlink(buildDir, buildDirLinkPath, {
 		type: "dir",
-		recursivelyCreateDirs: true,
+		overrideIfExistsAsLink: true,
+	})
+
+	const nejaDirLinkPath = path.join(buildDir, "neja")
+	const nejaDirPath = path.dirname(params.nejaExePath)
+	await fs_symlink(nejaDirPath, nejaDirLinkPath, {
+		type: "dir",
+		overrideIfExistsAsLink: true,
+	})
+
+	const nodeDirPath = path.resolve(params.nodeExePath, "../../")
+	const nodeDirLinkPath = path.join(buildDir, "node")
+	await fs_symlink(nodeDirPath, nodeDirLinkPath, {
+		type: "dir",
 		overrideIfExistsAsLink: true,
 	})
 
@@ -29,7 +42,7 @@ export default async function main(imports: string[]): Promise<void> {
 	const projectFile = neja.sourceFile(relProjectFilePath)
 	neja.rerun.mainNejafile.onFileItem(projectFile)
 
-	neja.rerun.commandBase = params.commandBase
+	neja.rerun.commandBase = `${params.nodeExePath} ${params.nejaExePath}`
 
 	const project = (await import(absProjectFilePath)) as object
 
@@ -54,13 +67,15 @@ export default async function main(imports: string[]): Promise<void> {
 // NOTE: I wanted to use commander, but it is CommonJS and doesn't work well with esbuild+ESM. I'm
 // not gonna waste time on making it work, so let's do a simple ad-hoc parser for now.
 function parseArgs(): {
-	commandBase: string
+	nodeExePath: string
+	nejaExePath: string
 	file: string
 	chdir?: string
 } {
 	const result: Partial<ReturnType<typeof parseArgs>> = {}
 
-	const commandBase = `${process.argv[0]} ${process.argv[1]}`
+	const nodeExePath = process.argv[0]
+	const nejaExePath = process.argv[1]
 
 	for (let i = 2; i < process.argv.length; ++i) {
 		const arg = process.argv[i]
@@ -98,7 +113,8 @@ function parseArgs(): {
 
 	return {
 		file: "neja.ts",
-		commandBase,
+		nodeExePath,
+		nejaExePath,
 		...result,
 	}
 }
