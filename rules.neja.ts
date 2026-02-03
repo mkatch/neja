@@ -58,3 +58,27 @@ export class Tsc extends neja.Build {
 		}
 	}
 }
+
+export class Cp extends neja.Build {
+	source = new neja.SingleFileItemPipe()
+	destination = new neja.SingleFileItemPipe()
+
+	rule() {
+		if (!this.source.item) {
+			throw new Error("Cp requires a source file.")
+		}
+		if (!this.destination.item) {
+			throw new Error("Cp requires a destination file or directory.")
+		}
+
+		this.ins = [this.source.item]
+		this.outs = [this.destination.item]
+
+		const { ins, outs } = this.vars
+
+		return {
+			command: `cp ${ins} ${outs}`,
+			description: `Copy ${ins} to ${outs}.`,
+		}
+	}
+}
