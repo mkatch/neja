@@ -8,10 +8,7 @@ export default [
 	{ files: ["**/*.{js,mjs,cjs,ts}"] }, //
 	{
 		languageOptions: {
-			globals: {
-				...globals.browser,
-				...globals.node,
-			},
+			globals: globals.node,
 		},
 	},
 	pluginJs.configs.recommended,
@@ -29,6 +26,7 @@ export default [
 		ignores: [
 			"node_modules/*", //
 			"build/*",
+			".neja-build/*",
 			"eslint.config.js",
 		],
 	},
