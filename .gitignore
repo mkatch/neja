@@ -2,9 +2,3 @@ node_modules
 build
 .neja-build
 *.local.neja.ts
-
-# We want to be self-hosted and npm is used only to bootstrap.
-package-lock.json
-
-# When we are fully self-hosted, we will just use `build` directory.
-neja_build

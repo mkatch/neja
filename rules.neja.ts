@@ -2,8 +2,20 @@ import * as path from "path"
 import { neja } from "neja"
 
 export const flags = await neja.resolveFlags({
-	nodePath: neja.flag<string>({ required: true }),
+	/**
+	 * Path to the Node.js installation of the host machine. Should be the root directory, right
+	 * before "bin" and "lib".
+	 *
+	 * This version is used to run the build tasks and language tools.
+	 *
+	 * At the moment, this is also the version that the build is targeting, but technically it doesn't
+	 * have to be this way. Might change if there is ever a need, e.g., when you want latest developer
+	 * experience, but the final program should work with an older runtime.
+	 */
+	hostNodePath: neja.flag<string>({ required: true }),
+
 	esbuildCommand: neja.flag<string>({ required: true }),
+
 	tscCommand: neja.flag<string>({ required: true }),
 })
 
@@ -85,7 +97,7 @@ export class Cp extends neja.Build {
 	}
 }
 
-const nodeModulesPath = path.join(flags.nodePath, "lib", "node_modules")
+const nodeModulesPath = path.join(flags.hostNodePath, "lib", "node_modules")
 
 export function nodeModuleLink(parent?: string): neja.FileItemPipe {
 	return {

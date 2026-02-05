@@ -43,3 +43,5 @@ export { drainDiscoveryTasks } from "./scheduling.ts"
 export { symlink } from "./symlink.ts"
 
 export { mkdir } from "./mkdir.ts"
+
+export { write } from "./write.ts"

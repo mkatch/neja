@@ -1,5 +1,6 @@
+import * as path from "path"
 import { neja } from "neja"
-import { Cp, EsbuildBundle, Tsc, nodeModuleLink } from "./rules.neja.ts"
+import { Cp, EsbuildBundle, Tsc, nodeModuleLink, flags } from "./rules.neja.ts"
 
 const cliLauncher = new EsbuildBundle()
 
@@ -10,6 +11,8 @@ const lib = new EsbuildBundle()
 
 const libTypes = new Tsc()
 const libTypesPackageJson = new Cp()
+
+const hostNodeExePath = path.join(flags.hostNodePath, "bin", "node")
 
 neja.sourceTree({
 	"cli/": {
@@ -39,5 +42,12 @@ neja.buildTree({
 			".": libTypes.outDir,
 			"package.json": libTypesPackageJson.destination,
 		},
+	},
+	"bin/": {
+		"neja-dev": neja.write({
+			mode: 0o755,
+			content: `#!${hostNodeExePath}\nimport "../cli.js"\n`,
+			overwrite: true,
+		}),
 	},
 })
