@@ -14,8 +14,6 @@ export const flags = await neja.resolveFlags({
 	 */
 	hostNodePath: neja.flag<string>({ required: true }),
 
-	esbuildCommand: neja.flag<string>({ required: true }),
-
 	tscCommand: neja.flag<string>({ required: true }),
 })
 
@@ -43,8 +41,38 @@ export class EsbuildBundle extends neja.Build {
 		const { entryPoint, outs, externalFlags } = this.vars
 
 		return {
-			command: `${flags.esbuildCommand} ${entryPoint} --bundle --platform=node --format=esm ${externalFlags} --outfile=${outs}`,
+			command: `${esbuildExePath} ${entryPoint} --bundle --platform=node --format=esm ${externalFlags} --outfile=${outs}`,
 			description: `Create bundle ${outs} from entry point ${entryPoint}.`,
+		}
+	}
+}
+
+export class CliEsbuildBundle extends neja.Build {
+	static buildScript = new neja.SingleFileItemPipe()
+
+	entryPoint = new neja.SingleFileItemPipe()
+	outFile = new neja.SingleFileItemPipe()
+	alwaysDirty = true
+
+	rule() {
+		if (!CliEsbuildBundle.buildScript.item) {
+			throw new Error("CliEsbuildBundle requires the build script.")
+		}
+		if (!this.entryPoint.item) {
+			throw new Error("CliEsbuildBundle requires an entry point.")
+		}
+		if (!this.outFile.item) {
+			throw new Error("CliEsbuildBundle requires an output file.")
+		}
+
+		this.ins = [CliEsbuildBundle.buildScript.item, this.entryPoint.item]
+		this.outs = [this.outFile.item]
+
+		const { ins, outs } = this.vars
+
+		return {
+			command: `${hostNodeExePath} ${ins} --outfile=${outs}`,
+			description: `Create bundle ${outs}`,
 		}
 	}
 }
@@ -97,7 +125,11 @@ export class Cp extends neja.Build {
 	}
 }
 
-const nodeModulesPath = path.join(flags.hostNodePath, "lib", "node_modules")
+function hostNodeModulePath(moduleName: string, parent?: string): string {
+	return parent
+		? path.join(nodeModulesPath, parent, "node_modules", moduleName)
+		: path.join(nodeModulesPath, moduleName)
+}
 
 export function nodeModuleLink(parent?: string): neja.FileItemPipe {
 	return {
@@ -106,10 +138,12 @@ export function nodeModuleLink(parent?: string): neja.FileItemPipe {
 				throw new Error("nodeModuleLink can only be used with directory items.")
 			}
 			const moduleName = path.basename(item.path)
-			const target = parent
-				? path.join(nodeModulesPath, parent, "node_modules", moduleName)
-				: path.join(nodeModulesPath, moduleName)
+			const target = hostNodeModulePath(moduleName, parent)
 			return neja.symlink(target).onFileItem(item)
 		},
 	}
 }
+
+const nodeModulesPath = path.join(flags.hostNodePath, "lib", "node_modules")
+export const hostNodeExePath = path.join(flags.hostNodePath, "bin", "node")
+export const esbuildExePath = path.join(hostNodeModulePath("esbuild"), "bin", "esbuild")

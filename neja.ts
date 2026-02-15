@@ -1,29 +1,31 @@
-import * as path from "path"
 import { neja } from "neja"
-import { Cp, EsbuildBundle, Tsc, nodeModuleLink, flags } from "./rules.neja.ts"
+import { CliEsbuildBundle, Cp, EsbuildBundle, Tsc, hostNodeExePath, nodeModuleLink } from "./rules.neja.ts"
 
 const cliLauncher = new EsbuildBundle()
 
-const cliMain = new EsbuildBundle()
-cliMain.external.push("neja")
+const cliEsbuildScript = new EsbuildBundle()
+cliEsbuildScript.external.push("esbuild")
+
+const cliMain = new CliEsbuildBundle()
 
 const lib = new EsbuildBundle()
 
 const libTypes = new Tsc()
 const libTypesPackageJson = new Cp()
 
-const hostNodeExePath = path.join(flags.hostNodePath, "bin", "node")
 
 neja.sourceTree({
 	"cli/": {
 		"launcher.ts": cliLauncher.entryPoint,
 		"main.ts": cliMain.entryPoint,
+		"esbuild.ts": cliEsbuildScript.entryPoint
 	},
 	"lib/": {
 		"index.ts": lib.entryPoint,
 		"package.json.template": libTypesPackageJson.source,
 	},
 	"node_modules/": {
+		"esbuild/": nodeModuleLink(),
 		"eslint/": nodeModuleLink(),
 		"globals/": nodeModuleLink("eslint"),
 		"@eslint/": nodeModuleLink("eslint"),
@@ -34,6 +36,13 @@ neja.sourceTree({
 })
 
 neja.buildTree({
+	"cli_esbuild.js": {
+		onFileItem: (item) => {
+			cliEsbuildScript.outFile.onFileItem(item)
+			CliEsbuildBundle.buildScript.onFileItem(item)
+			return item
+		}
+	},
 	"cli.js": cliLauncher.outFile,
 	"cli_main.js": cliMain.outFile,
 	"lib.js": lib.outFile,

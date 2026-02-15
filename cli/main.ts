@@ -1,19 +1,38 @@
+import * as fs from "fs"
 import * as path from "path"
-import { neja } from "neja"
+import { neja } from "@lib"
 import { createOutputStreams, drainBuilds, resolveRules, writeHeaders } from "./gen.ts"
 import { fs_symlink } from "@util/node.ts"
+import { parseArgs } from "util"
+// import { parseArgs } from "./args.ts"
 
 export default async function main(imports: string[]): Promise<void> {
-	const params = parseArgs()
+	const {
+		values: { file, chdir },
+	} = parseArgs({
+		options: {
+			file: { type: "string", short: "f" },
+			chdir: { type: "string", short: "C" },
+		},
+	})
 
-	const absProjectFilePath = path.resolve(params.file)
-	const sourceDirPath = path.dirname(absProjectFilePath)
-	const relProjectFilePath = path.basename(absProjectFilePath)
+	if (!file) {
+		throw new Error("Must provide path to Nejafile")
+	}
+
+	const nejafilePath = path.resolve(file)
+	const sourceDirPath = path.dirname(nejafilePath)
+	const relativeNejafilePath = path.basename(nejafilePath)
 
 	const buildDirLinkPath = path.join(sourceDirPath, ".neja-build")
 
-	if (params.chdir) {
-		process.chdir(params.chdir)
+	const [nodeExePath, scriptPath] = await Promise.all([
+		fs.promises.realpath(process.argv[0]),
+		fs.promises.realpath(process.argv[1]),
+	])
+
+	if (chdir) {
+		process.chdir(chdir)
 	}
 	const buildDir = process.cwd()
 
@@ -23,13 +42,14 @@ export default async function main(imports: string[]): Promise<void> {
 	})
 
 	const nejaDirLinkPath = path.join(buildDir, "neja")
-	const nejaDirPath = path.dirname(params.nejaExePath)
+	const nejaDirPath = path.resolve(scriptPath, "../../")
+	console.log(`Symlinking "${nejaDirPath}" to "${nejaDirLinkPath}"`)
 	await fs_symlink(nejaDirPath, nejaDirLinkPath, {
 		type: "dir",
 		overrideIfExistsAsLink: true,
 	})
 
-	const nodeDirPath = path.resolve(params.nodeExePath, "../../")
+	const nodeDirPath = path.resolve(nodeExePath, "../../")
 	const nodeDirLinkPath = path.join(buildDir, "node")
 	await fs_symlink(nodeDirPath, nodeDirLinkPath, {
 		type: "dir",
@@ -39,12 +59,12 @@ export default async function main(imports: string[]): Promise<void> {
 	neja.config.sourceDir = sourceDirPath
 	neja.config.buildDir = buildDir
 
-	const projectFile = neja.sourceFile(relProjectFilePath)
-	neja.rerun.mainNejafile.onFileItem(projectFile)
+	const nejafile = neja.sourceFile(relativeNejafilePath)
+	neja.rerun.mainNejafile.onFileItem(nejafile)
 
-	neja.rerun.commandBase = `${params.nodeExePath} ${params.nejaExePath}`
+	neja.rerun.commandBase = `${nodeExePath} ${scriptPath}`
 
-	const project = (await import(absProjectFilePath)) as object
+	const project = (await import(nejafilePath)) as object
 
 	for (const [k, v] of Object.entries(project)) {
 		if (v instanceof neja.Build) {
@@ -61,60 +81,5 @@ export default async function main(imports: string[]): Promise<void> {
 		await resolveRules({ ruleOut, buildOut, imports })
 	} finally {
 		endOutput()
-	}
-}
-
-// NOTE: I wanted to use commander, but it is CommonJS and doesn't work well with esbuild+ESM. I'm
-// not gonna waste time on making it work, so let's do a simple ad-hoc parser for now.
-function parseArgs(): {
-	nodeExePath: string
-	nejaExePath: string
-	file: string
-	chdir?: string
-} {
-	const result: Partial<ReturnType<typeof parseArgs>> = {}
-
-	const nodeExePath = process.argv[0]
-	const nejaExePath = process.argv[1]
-
-	for (let i = 2; i < process.argv.length; ++i) {
-		const arg = process.argv[i]
-		if (arg.startsWith("-")) {
-			let argName: string
-			let argValue: string
-
-			const valueSeparatorIndex = arg.indexOf("=")
-			if (valueSeparatorIndex === -1) {
-				argName = arg
-				++i
-				argValue = process.argv[i]
-			} else {
-				argName = arg.slice(0, valueSeparatorIndex)
-				argValue = arg.slice(valueSeparatorIndex + 1)
-			}
-
-			switch (argName) {
-				case "-f":
-				case "--file": {
-					result.file = argValue
-					break
-				}
-
-				case "-C":
-				case "--chdir": {
-					result.chdir = argValue
-					break
-				}
-			}
-		} else {
-			// We don't have positional args yet.
-		}
-	}
-
-	return {
-		file: "neja.ts",
-		nodeExePath,
-		nejaExePath,
-		...result,
 	}
 }

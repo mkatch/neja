@@ -6,13 +6,14 @@
 		"moduleResolution": "bundler",
 		"rootDir": "./",
 		"paths": {
-			"@util/*": ["./util/*"]
+			"@util/*": ["./util/*"],
+			"@lib": ["./lib/index.ts"]
 		},
 
 		// It is important that no code from ./lib is directly imported from any other
 		// place: it has to be imported as an external dependency. That's because the
 		// library relies on global state and `instanceof` checks to work properly.
-		"typeRoots": [".neja-build/node/lib/node_modules/@types", ".neja-build/types"],
+		"typeRoots": [".neja-build/node/lib/node_modules/@types", ".neja-build/neja/types"],
 		"types": ["node"],
 
 		// Only allow emitting when invoked specifically from command line. We'd like to also always
