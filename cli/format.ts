@@ -1,5 +1,5 @@
 import * as path from "path"
-import type { neja } from "neja"
+import type { neja } from "@lib"
 import { UniqueNameResolver } from "./unique_name_resolver.ts"
 
 const uniqueAnonBuildNames = new UniqueNameResolver()
