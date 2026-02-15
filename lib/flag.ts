@@ -1,8 +1,8 @@
-import * as path from "path"
 import { captureCurrentSourceDir, config } from "./env.ts"
 import { fs_exists } from "@util/node.ts"
 import type { Expand } from "@util/type.ts"
-import { absolutePath } from "./file.ts"
+import { sourceRoot } from "./file.ts"
+import { resolvePath } from "./path.ts"
 
 const FlagSchema_valueType = Symbol("FlagSchema_type")
 type FlagSchemaValue<T> = {
@@ -38,27 +38,32 @@ export async function resolveFlags<S extends FlagSchema>(
 		}
 	}
 
-	const rootDirPath = config.sourceDir
 	const currentSourceDir = captureCurrentSourceDir()
-	const currentSourceDirPath = absolutePath(currentSourceDir)
-
-	const flagFilePathCandidates = [
-		path.join(rootDirPath, "flags.neja.ts"),
-		path.join(rootDirPath, "flags.neja.js"),
-		path.join(currentSourceDirPath, "flags.neja.ts"),
-		path.join(currentSourceDirPath, "flags.neja.js"),
-		path.join(rootDirPath, "flags.local.neja.ts"),
-		path.join(rootDirPath, "flags.local.neja.js"),
-		path.join(currentSourceDirPath, "flags.local.neja.ts"),
-		path.join(currentSourceDirPath, "flags.local.neja.js"),
+	const dirCandidates = [sourceRoot, currentSourceDir]
+	const basenameCandidates = [
+		"flags.neja.ts",
+		"flags.neja.js",
+		"flags.local.neja.ts",
+		"flags.local.neja.js",
 	]
-	await Promise.all(
-		flagFilePathCandidates.map(async (flagFilePath) => {
-			if (await fs_exists(flagFilePath)) {
-				await import(flagFilePath)
-			}
-		}),
+	const importPaths = await Promise.all(
+		basenameCandidates.flatMap((basename) =>
+			dirCandidates.map(async (dir) => {
+				const candidatePath = resolvePath(dir, basename)
+				if (await fs_exists(candidatePath)) {
+					return candidatePath
+				} else {
+					return null
+				}
+			}),
+		),
 	)
+
+	for (const importPath of importPaths) {
+		if (importPath) {
+			await import(importPath)
+		}
+	}
 
 	const result = {} as Record<string, unknown>
 

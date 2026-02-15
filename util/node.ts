@@ -63,6 +63,15 @@ export function path_nestedRelative(from: string, to: string): string | null {
 	return isNested ? rel : null
 }
 
+export function path_isNested(from: string, to: string): boolean {
+	return path_nestedRelative(from, to) !== null
+}
+
+/** Whether the given path is an OS-specific root path, eg., "/" on POSIX or "C:\\" on Windows. */
+export function path_isRoot(p: string): boolean {
+	return path.dirname(p) === p
+}
+
 /**
  * Check whether a file or directory exists at the given path.
  *

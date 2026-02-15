@@ -1,47 +1,101 @@
+export type {
+	NinjaRule, //
+} from "./build.ts"
 export {
-	type FileItem,
-	type FileItemPipe,
-	//
-	Dir,
+	allBuilds, //
+	Build,
+	rerun,
+	RuleVar,
+} from "./build.ts"
+
+export {
+	captureCurrentSourceDir, //
+	config,
+	maybeNejafile,
+} from "./env.ts"
+
+export type {
+	Dir, //
 	File,
-	FileItemArray,
-	SingleFileItemPipe,
-	//
-	buildCounterpart,
-	buildFile,
-	buildTree,
+	FileItem,
+	FileItemOfType,
+	FileItemType,
+} from "./file.ts"
+export {
+	binRoot,
+	buildRoot,
 	dir,
 	file,
+	fileItem,
 	fileTree,
-	imported,
+	outRoot,
+	outTree,
 	queryDir,
-	queryDirNaive,
 	queryFile,
 	queryFileItem,
-	queryFileItemNaive,
-	queryFileNaive,
-	sourceFile,
+	sourceRoot,
 	sourceTree,
 } from "./file.ts"
 
 export {
-	type NinjaRule,
-	//
-	Build,
-	RuleVar,
-	//
-	allBuilds,
-	rerun,
-} from "./build.ts"
+	flag, //
+	resolveFlags,
+	setFlags,
+} from "./flag.ts"
 
-export { config, captureCurrentSourceDir, maybeNejafile } from "./env.ts"
+export {
+	mkdir, //
+} from "./pipes/mkdir.ts"
 
-export { resolveFlags, flag, setFlags } from "./flag.ts"
+export type {
+	Path, //
+	PathModifier,
+	PathModifierFn,
+	resolvePath_Args,
+	resolvePath_CheckedArgs,
+	resolvePath_UncheckedArgs,
+} from "./path.ts"
+export {
+	expectRelativeDescendantPath, //
+	isDescendant,
+	isPathDirLike,
+	parentPath,
+	pathBasename,
+	pathType,
+	relativeDescendantPath,
+	resolvePath,
+} from "./path.ts"
 
-export { drainDiscoveryTasks } from "./scheduling.ts"
+export type {
+	FilePipe, //
+	FilePipeLike,
+	OnFileItem,
+} from "./pipe.ts"
 
-export { symlink } from "./symlink.ts"
+export {
+	importPipe as import, //
+} from "./pipes/import.ts"
 
-export { mkdir } from "./mkdir.ts"
+export {
+	dirArray, //
+	fileArray,
+	fileItemArray,
+} from "./pipes/array.ts"
 
-export { write } from "./write.ts"
+export {
+	singleDir, //
+	singleFile,
+	singleFileItem,
+} from "./pipes/single.ts"
+
+export {
+	symlink, //
+} from "./pipes/symlink.ts"
+
+export {
+	write, //
+} from "./pipes/write.ts"
+
+export {
+	drainDiscoveryTasks, //
+} from "./scheduling.ts"

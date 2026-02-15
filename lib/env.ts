@@ -1,11 +1,18 @@
-import { Error_captureStructuredStackTrace, path_nestedRelative } from "@util/node.ts"
-import { buildCounterpart, File, Dir, dir, sourceFile } from "./file.ts"
+import { Error_captureStructuredStackTrace } from "@util/node.ts"
+import { File, Dir, dir, file, sourceRoot, outRoot } from "./file.ts"
+import type { Path } from "./path.ts"
+import { expectRelativeDescendantPath, isDescendant, resolvePath } from "./path.ts"
 
 export const config = {
-	sourceDir: "",
-	buildDir: "",
+	sourceDirPath: null! as Path,
+	buildDirPath: null! as Path,
 	env: {} as Record<string, string>,
 	flagBus: new Map<string, FlagExchange>(),
+}
+
+export function init(params: { sourceDirPath: string; buildDirPath: string }) {
+	config.sourceDirPath = resolvePath(params.sourceDirPath)
+	config.buildDirPath = resolvePath(params.buildDirPath)
 }
 
 type FlagExchange =
@@ -20,16 +27,17 @@ export function maybeNejafile(filePathOrUrl: string): File | null {
 		return null
 	}
 
-	const absNejaFilePath = filePathOrUrl.startsWith("file://")
+	const absNejafilePath = filePathOrUrl.startsWith("file://")
 		? filePathOrUrl.substring("file://".length)
 		: filePathOrUrl
 
-	const relNejaFilePath = path_nestedRelative(config.sourceDir, absNejaFilePath)
-	if (!relNejaFilePath) {
+	const nejafile = file(absNejafilePath)
+
+	if (!isDescendant(sourceRoot, nejafile, { includeSelf: false })) {
 		return null
 	}
 
-	return sourceFile(relNejaFilePath)
+	return nejafile
 }
 
 export function captureCurrentNejafile(): File {
@@ -51,9 +59,14 @@ export function captureCurrentSourceDir(): Dir {
 	return nejafile.parent
 }
 
-export function captureCurrentBuildDir(): Dir {
+export function captureCurrentRelativeSourceDir(): string {
 	const currentSourceDir = captureCurrentSourceDir()
-	const currentBuildDirPath = buildCounterpart(currentSourceDir)
-	const currentBuildDir = dir(currentBuildDirPath)
-	return currentBuildDir
+	return expectRelativeDescendantPath(sourceRoot, currentSourceDir, {
+		includeSelf: true,
+	})
+}
+
+export function captureCurrentOutDir(): Dir {
+	const currentRelativeSourceDir = captureCurrentRelativeSourceDir()
+	return dir(outRoot, currentRelativeSourceDir)
 }
