@@ -1,16 +1,12 @@
-import { isPromiseLike } from "@util/async.ts"
-
-const discoveryTasks = new Array<PromiseLike<unknown>>()
+const pendingDiscoveryTasks = new Array<PromiseLike<unknown>>()
 
 export async function drainDiscoveryTasks(): Promise<void> {
-	while (discoveryTasks.length > 0) {
-		const batch = discoveryTasks.splice(0)
+	while (pendingDiscoveryTasks.length > 0) {
+		const batch = pendingDiscoveryTasks.splice(0)
 		await Promise.all(batch)
 	}
 }
 
-export function addDiscoveryTaskIfPromise(task: unknown): void {
-	if (isPromiseLike(task)) {
-		discoveryTasks.push(task)
-	}
+export function addDiscoveryTask(task: PromiseLike<unknown>): void {
+	pendingDiscoveryTasks.push(task)
 }

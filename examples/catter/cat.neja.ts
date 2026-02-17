@@ -1,8 +1,8 @@
 import { neja } from "neja"
 
-export class Cat extends neja.Build implements neja.FileItemPipe {
-	ins = new neja.FileItemArray()
-	outs = new neja.FileItemArray()
+export class Cat extends neja.Build implements neja.FilePipe {
+	ins = neja.fileArray()
+	outs = neja.fileArray()
 	lineNumbers = false
 
 	onFileItem = this.ins.onFileItem.bind(this.ins)
@@ -14,7 +14,7 @@ export class Cat extends neja.Build implements neja.FileItemPipe {
 			command += " -n"
 		}
 
-		if (this.outs.length > 1) {
+		if (this.outs.length !== 1) {
 			throw new Error("Cat build supports only single output file.")
 		}
 

@@ -1,17 +1,18 @@
-import { Error_captureStructuredStackTrace, path_nestedRelative } from "@util/node.ts"
-import { buildCounterpart, File, Dir, dir, sourceFile } from "./file.ts"
+import { Error_captureStructuredStackTrace } from "@util/node.ts"
+import { File, Dir, dir, file, sourceRoot, outRoot } from "./file.ts"
+import type { Path } from "./path.ts"
+import { expectRelativeDescendantPath, isDescendant, normalizePath } from "./path.ts"
 
-export const config = {
-	sourceDir: "",
-	buildDir: "",
-	env: {} as Record<string, string>,
-	flagBus: new Map<string, FlagExchange>(),
+export let sourceDirPath!: Path
+export let buildDirPath!: Path
+
+export function env_init(params: {
+	sourceDirPath: Path
+	buildDirPath: Path
+}): void {
+	sourceDirPath = params.sourceDirPath
+	buildDirPath = params.buildDirPath
 }
-
-type FlagExchange =
-	| { stage: "requested" }
-	| { stage: "provided"; value: unknown }
-	| { stage: "consumed" }
 
 const NEJAFILE_PATH_PATTERN = /(^|[/.\\])neja\.[tj]s$/
 
@@ -20,16 +21,15 @@ export function maybeNejafile(filePathOrUrl: string): File | null {
 		return null
 	}
 
-	const absNejaFilePath = filePathOrUrl.startsWith("file://")
+	const nejafilePath = normalizePath(filePathOrUrl.startsWith("file://")
 		? filePathOrUrl.substring("file://".length)
-		: filePathOrUrl
+		: filePathOrUrl)
 
-	const relNejaFilePath = path_nestedRelative(config.sourceDir, absNejaFilePath)
-	if (!relNejaFilePath) {
+	if (!isDescendant(sourceRoot, nejafilePath, { includeSelf: false })) {
 		return null
 	}
 
-	return sourceFile(relNejaFilePath)
+	return file(nejafilePath)
 }
 
 export function captureCurrentNejafile(): File {
@@ -51,9 +51,14 @@ export function captureCurrentSourceDir(): Dir {
 	return nejafile.parent
 }
 
-export function captureCurrentBuildDir(): Dir {
+export function captureCurrentRelativeSourceDir(): string {
 	const currentSourceDir = captureCurrentSourceDir()
-	const currentBuildDirPath = buildCounterpart(currentSourceDir)
-	const currentBuildDir = dir(currentBuildDirPath)
-	return currentBuildDir
+	return expectRelativeDescendantPath(sourceRoot, currentSourceDir, {
+		includeSelf: true,
+	})
+}
+
+export function captureCurrentOutDir(): Dir {
+	const currentRelativeSourceDir = captureCurrentRelativeSourceDir()
+	return dir(outRoot, currentRelativeSourceDir)
 }

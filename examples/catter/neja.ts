@@ -15,9 +15,9 @@ neja.sourceTree({
 		"c.txt": poem,
 		"d.txt": poem,
 	},
-	"bar/": neja.imported,
+	"bar/": neja.import,
 })
 
-neja.buildTree({
+neja.outTree({
 	"poem.txt": poem.outs,
 })

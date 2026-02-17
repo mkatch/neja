@@ -1,5 +1,7 @@
 import type { FileItem } from "./file.ts"
-import { buildDir, buildFile, FileItemArray, SingleFileItemPipe } from "./file.ts"
+import { buildFileItem, buildRoot } from "./file.ts"
+import { fileArray } from "./pipes/array.ts"
+import { singleFile } from "./pipes/single.ts"
 
 export const allBuilds = new Array<Build>()
 
@@ -63,11 +65,9 @@ export abstract class Build {
 }
 
 export const rerun = new (class RerunNeja extends Build {
-	mainNejafile = new SingleFileItemPipe()
-	implicitIns = new FileItemArray()
-
-	outs = [buildFile("rules.ninja"), buildFile("build.ninja")]
-
+	mainNejafile = singleFile()
+	implicitIns = fileArray()
+	outs = fileArray()
 	commandBase = ""
 
 	rule() {
@@ -83,7 +83,7 @@ export const rerun = new (class RerunNeja extends Build {
 		const { ins } = this.vars
 
 		return {
-			command: `${this.commandBase} -f ${ins} --chdir=${buildDir}`,
+			command: `${this.commandBase} -f ${ins} --chdir=${buildRoot}`,
 			description: "Rerun neja",
 			generator: true,
 		}

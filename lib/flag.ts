@@ -1,8 +1,15 @@
-import * as path from "path"
-import { captureCurrentSourceDir, config } from "./env.ts"
+import { captureCurrentSourceDir } from "./env.ts"
 import { fs_exists } from "@util/node.ts"
 import type { Expand } from "@util/type.ts"
-import { absolutePath } from "./file.ts"
+import { sourceRoot } from "./file.ts"
+import { resolvePath } from "./path.ts"
+
+export const flagBus = new Map<string, FlagExchange>()
+
+type FlagExchange =
+	| { stage: "requested" }
+	| { stage: "provided"; value: unknown }
+	| { stage: "consumed" }
 
 const FlagSchema_valueType = Symbol("FlagSchema_type")
 type FlagSchemaValue<T> = {
@@ -28,42 +35,47 @@ export async function resolveFlags<S extends FlagSchema>(
 	schema: S,
 ): Promise<Expand<ResolvedFlags<S>>> {
 	for (const key of Object.keys(schema)) {
-		const exchange = config.flagBus.get(key)
+		const exchange = 	flagBus.get(key)
 		if (exchange) {
 			if (exchange.stage === "requested" || exchange.stage === "consumed") {
 				throw new Error(`Duplicate flag declaration: "${key}".`)
 			}
 		} else {
-			config.flagBus.set(key, { stage: "requested" })
+			flagBus.set(key, { stage: "requested" })
 		}
 	}
 
-	const rootDirPath = config.sourceDir
 	const currentSourceDir = captureCurrentSourceDir()
-	const currentSourceDirPath = absolutePath(currentSourceDir)
-
-	const flagFilePathCandidates = [
-		path.join(rootDirPath, "flags.neja.ts"),
-		path.join(rootDirPath, "flags.neja.js"),
-		path.join(currentSourceDirPath, "flags.neja.ts"),
-		path.join(currentSourceDirPath, "flags.neja.js"),
-		path.join(rootDirPath, "flags.local.neja.ts"),
-		path.join(rootDirPath, "flags.local.neja.js"),
-		path.join(currentSourceDirPath, "flags.local.neja.ts"),
-		path.join(currentSourceDirPath, "flags.local.neja.js"),
+	const dirCandidates = [sourceRoot, currentSourceDir]
+	const basenameCandidates = [
+		"flags.neja.ts",
+		"flags.neja.js",
+		"flags.local.neja.ts",
+		"flags.local.neja.js",
 	]
-	await Promise.all(
-		flagFilePathCandidates.map(async (flagFilePath) => {
-			if (await fs_exists(flagFilePath)) {
-				await import(flagFilePath)
-			}
-		}),
+	const importPaths = await Promise.all(
+		basenameCandidates.flatMap((basename) =>
+			dirCandidates.map(async (dir) => {
+				const candidatePath = resolvePath(dir, basename)
+				if (await fs_exists(candidatePath)) {
+					return candidatePath
+				} else {
+					return null
+				}
+			}),
+		),
 	)
+
+	for (const importPath of importPaths) {
+		if (importPath) {
+			await import(importPath)
+		}
+	}
 
 	const result = {} as Record<string, unknown>
 
 	for (const [key, schemaValue] of Object.entries(schema)) {
-		const exchange = config.flagBus.get(key)
+		const exchange = flagBus.get(key)
 		if (!exchange) {
 			throw new Error(`Internal error. No flag exchange for key: ${key}.`)
 		}
@@ -79,7 +91,7 @@ export async function resolveFlags<S extends FlagSchema>(
 			throw new Error(`Required flag "${key}" was not provided.`)
 		}
 
-		config.flagBus.set(key, { stage: "consumed" })
+		flagBus.set(key, { stage: "consumed" })
 	}
 
 	return result as ResolvedFlags<S>
@@ -87,12 +99,12 @@ export async function resolveFlags<S extends FlagSchema>(
 
 export function setFlags<T extends ResolvedFlags>(flags: T): void {
 	for (const [key, value] of Object.entries(flags)) {
-		const exchange = config.flagBus.get(key)
+		const exchange = flagBus.get(key)
 		if (exchange) {
 			if (exchange.stage === "provided" || exchange.stage === "consumed") {
 				throw new Error(`Duplicate flag provision: "${key}".`)
 			}
 		}
-		config.flagBus.set(key, { stage: "provided", value })
+		flagBus.set(key, { stage: "provided", value })
 	}
 }

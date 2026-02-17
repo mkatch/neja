@@ -1,10 +1,9 @@
 import * as fs from "fs"
-import * as path from "path"
+import * as nodePath from "path"
 import { neja } from "@lib"
 import { createOutputStreams, drainBuilds, resolveRules, writeHeaders } from "./gen.ts"
 import { fs_symlink } from "@util/node.ts"
 import { parseArgs } from "util"
-// import { parseArgs } from "./args.ts"
 
 export default async function main(imports: string[]): Promise<void> {
 	const {
@@ -20,48 +19,48 @@ export default async function main(imports: string[]): Promise<void> {
 		throw new Error("Must provide path to Nejafile")
 	}
 
-	const nejafilePath = path.resolve(file)
-	const sourceDirPath = path.dirname(nejafilePath)
-	const relativeNejafilePath = path.basename(nejafilePath)
-
-	const buildDirLinkPath = path.join(sourceDirPath, ".neja-build")
-
 	const [nodeExePath, scriptPath] = await Promise.all([
-		fs.promises.realpath(process.argv[0]),
-		fs.promises.realpath(process.argv[1]),
+		fs.promises.realpath(process.argv[0]).then((path) => neja.normalizePath("file", path)),
+		fs.promises.realpath(process.argv[1]).then((path) => neja.normalizePath("file", path)),
 	])
+	const nejafilePath = neja.normalizePath("file", nodePath.resolve(file))
 
 	if (chdir) {
 		process.chdir(chdir)
 	}
-	const buildDir = process.cwd()
+	const buildDirPath = neja.normalizePath("dir", process.cwd())
+	const sourceDirPath = neja.parentPath(nejafilePath)
 
-	await fs_symlink(buildDir, buildDirLinkPath, {
+	neja.internal.env_init({
+		sourceDirPath,
+		buildDirPath,
+	})
+	neja.internal.file_init()
+
+	const buildDirLinkPath = neja.resolvePath(sourceDirPath, ".neja-build/")
+	await fs_symlink(buildDirPath, buildDirLinkPath, {
 		type: "dir",
 		overrideIfExistsAsLink: true,
 	})
 
-	const nejaDirLinkPath = path.join(buildDir, "neja")
-	const nejaDirPath = path.resolve(scriptPath, "../../")
+	const nejaDirLinkPath = neja.resolvePath(buildDirPath, "neja/")
+	const nejaDirPath = neja.resolvePath(scriptPath, "../../")
 	console.log(`Symlinking "${nejaDirPath}" to "${nejaDirLinkPath}"`)
 	await fs_symlink(nejaDirPath, nejaDirLinkPath, {
 		type: "dir",
 		overrideIfExistsAsLink: true,
 	})
 
-	const nodeDirPath = path.resolve(nodeExePath, "../../")
-	const nodeDirLinkPath = path.join(buildDir, "node")
+	const nodeDirPath = neja.resolvePath(nodeExePath, "../../")
+	const nodeDirLinkPath = neja.resolvePath(buildDirPath, "node/")
 	await fs_symlink(nodeDirPath, nodeDirLinkPath, {
 		type: "dir",
 		overrideIfExistsAsLink: true,
 	})
 
-	neja.config.sourceDir = sourceDirPath
-	neja.config.buildDir = buildDir
-
-	const nejafile = neja.sourceFile(relativeNejafilePath)
-	neja.rerun.mainNejafile.onFileItem(nejafile)
-
+	const ruleFile = neja.pipe(neja.internal.buildFileItem("file", "rules.ninja"), neja.rerun.outs)
+	const buildFile = neja.pipe(neja.internal.buildFileItem("file", "build.ninja"), neja.rerun.outs)
+	neja.pipe(neja.file(nejafilePath), neja.rerun.mainNejafile)
 	neja.rerun.commandBase = `${nodeExePath} ${scriptPath}`
 
 	const project = (await import(nejafilePath)) as object
@@ -72,9 +71,9 @@ export default async function main(imports: string[]): Promise<void> {
 		}
 	}
 
-	const { ruleOut, buildOut, endOutput } = createOutputStreams({ buildDir })
+	const { ruleOut, buildOut, endOutput } = createOutputStreams({ ruleFile, buildFile })
 	try {
-		await writeHeaders({ ruleOut, buildOut, sourceDir: sourceDirPath, buildDir })
+		await writeHeaders({ ruleOut, buildOut })
 
 		await drainBuilds()
 

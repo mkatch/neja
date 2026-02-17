@@ -120,6 +120,12 @@ export async function fs_symlink(
 	},
 ): Promise<void> {
 	const { recursivelyCreateDirs = false, overrideIfExistsAsLink = false, type } = params || {}
+
+	// Resolve primarily to remove a trailing slash, if present. If a link path contains a trailing
+	// slash, `lstat` has been observed to actually resolve to the real path. This blocks recovery in
+	// case the initial attempt fails with EEXIST.
+	link = path.resolve(link)
+
 	if (recursivelyCreateDirs) {
 		const dirPath = path.dirname(link)
 		await fs.promises.mkdir(dirPath, { recursive: true })
