@@ -58,6 +58,7 @@ export function file_init() {
 	sourceRoot = pipe(dir(sourceDirPath), [virtualRoot, ninjaVar("sourcedir")])
 	buildRoot = pipe(dir(buildDirPath), [virtualRoot, ninjaVar("builddir")])
 	outRoot = pipe(buildFileItem("dir", "out/"), virtualRoot)
+	binRoot = pipe(buildFileItem("dir", "bin/"), virtualRoot)
 }
 
 interface FileItem_Base {
