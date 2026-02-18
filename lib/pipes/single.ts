@@ -52,6 +52,10 @@ class SingleFilePipeImpl implements SingleFilePipe {
 			return this.customHandler(item)
 		}
 	}
+
+	toString(): string {
+		return this.item?.toString() ?? "" // TODO: Is this the best way to represent a missing value?
+	}
 }
 
 interface singleFileItem_Params<T extends FileItemType = FileItemType> {

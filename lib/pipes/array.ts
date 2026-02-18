@@ -28,6 +28,10 @@ class FileArrayPipeImpl extends Array<FileItem> implements FileArrayPipe  {
 			return this.customHandler(item)
 		}
 	}
+
+	toString(): string {
+		return this.items.map(item => item.toString()).join(" ")
+	}
 }
 
 type fileItemArray_Params<T extends FileItemType = FileItemType> = {
