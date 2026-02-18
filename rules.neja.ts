@@ -18,53 +18,37 @@ export const flags = await neja.resolveFlags({
 })
 
 export class EsbuildBundle extends neja.Build {
-	entryPoint = new neja.SingleFileItemPipe()
-	outFile = new neja.SingleFileItemPipe()
+	entryPoint = neja.singleFile({ required: true})
+	outFile = neja.singleFile({ required: true})
 	external = new Array<string>()
 	externalFlags?: string
 	alwaysDirty = true
 
 	rule() {
-		if (!this.entryPoint.item) {
-			throw new Error("EsbuildBundle requires an entry point.")
-		}
-		if (!this.outFile.item) {
-			throw new Error("EsbuildBundle requires an output file.")
-		}
-
+		this.ins = [this.entryPoint.item]
 		this.outs = [this.outFile.item]
 
 		if (this.external.length > 0) {
 			this.externalFlags = this.external.map((ext) => `--external:${ext}`).join(" ")
 		}
 
-		const { entryPoint, outs, externalFlags } = this.vars
+		const { ins, outs, externalFlags } = this.vars
 
 		return {
-			command: `${esbuildExePath} ${entryPoint} --bundle --platform=node --format=esm ${externalFlags} --outfile=${outs}`,
-			description: `Create bundle ${outs} from entry point ${entryPoint}.`,
+			command: `${esbuildExePath} ${ins} --bundle --platform=node --format=esm ${externalFlags} --outfile=${outs}`,
+			description: `Create bundle ${outs} from entry point ${ins}.`,
 		}
 	}
 }
 
 export class CliEsbuildBundle extends neja.Build {
-	static buildScript = new neja.SingleFileItemPipe()
+	static buildScript = neja.singleFile({ required: true})
 
-	entryPoint = new neja.SingleFileItemPipe()
-	outFile = new neja.SingleFileItemPipe()
+	entryPoint = neja.singleFile({ required: true})
+	outFile = neja.singleFile({ required: true})
 	alwaysDirty = true
 
 	rule() {
-		if (!CliEsbuildBundle.buildScript.item) {
-			throw new Error("CliEsbuildBundle requires the build script.")
-		}
-		if (!this.entryPoint.item) {
-			throw new Error("CliEsbuildBundle requires an entry point.")
-		}
-		if (!this.outFile.item) {
-			throw new Error("CliEsbuildBundle requires an output file.")
-		}
-
 		this.ins = [CliEsbuildBundle.buildScript.item, this.entryPoint.item]
 		this.outs = [this.outFile.item]
 
@@ -78,18 +62,11 @@ export class CliEsbuildBundle extends neja.Build {
 }
 
 export class Tsc extends neja.Build {
-	project = new neja.SingleFileItemPipe()
-	outDir = new neja.SingleFileItemPipe()
+	project = neja.singleFile({ required: true})
+	outDir = neja.singleDir({ required: true})
 	alwaysDirty = true
 
 	rule() {
-		if (!this.project.item) {
-			throw new Error("Tsc requires a project file.")
-		}
-		if (!this.outDir.item) {
-			throw new Error("Tsc requires an output directory.")
-		}
-
 		this.ins = [this.project.item]
 
 		const { ins, outDir } = this.vars
@@ -102,17 +79,10 @@ export class Tsc extends neja.Build {
 }
 
 export class Cp extends neja.Build {
-	source = new neja.SingleFileItemPipe()
-	destination = new neja.SingleFileItemPipe()
+	source = neja.singleFile({ required: true})
+	destination = neja.singleFile({ required: true})
 
 	rule() {
-		if (!this.source.item) {
-			throw new Error("Cp requires a source file.")
-		}
-		if (!this.destination.item) {
-			throw new Error("Cp requires a destination file or directory.")
-		}
-
 		this.ins = [this.source.item]
 		this.outs = [this.destination.item]
 
@@ -131,9 +101,9 @@ function hostNodeModulePath(moduleName: string, parent?: string): string {
 		: path.join(nodeModulesPath, moduleName)
 }
 
-export function nodeModuleLink(parent?: string): neja.FileItemPipe {
+export function nodeModuleLink(parent?: string): neja.FilePipe {
 	return {
-		onFileItem(item: neja.FileItem): neja.FileItem {
+		onFileItem(item) {
 			if (item.type !== "dir") {
 				throw new Error("nodeModuleLink can only be used with directory items.")
 			}
