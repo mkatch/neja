@@ -1,6 +1,6 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-		"typeRoots": ["../.neja-build/node/lib/node_modules/@types", "../.neja-build/types"],
+		"typeRoots": ["../.neja-build/node/lib/node_modules/@types", "../.neja-build/out/types"],
   }
 }
