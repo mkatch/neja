@@ -17,7 +17,7 @@ import {
 	pathType,
 	resolvePath_impl,
 } from "./path.ts"
-import { RuleVar } from "./build.ts"
+import { RuleVar } from "./rule.ts"
 import { virtualRoot } from "./pipes/virtual_root.ts"
 import { ninjaVar } from "./pipes/ninja_var.ts"
 

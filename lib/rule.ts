@@ -1,12 +1,12 @@
 import type { FileItem } from "./file.ts"
-import { buildFileItem, buildRoot } from "./file.ts"
+import { buildRoot } from "./file.ts"
 import { fileArray } from "./pipes/array.ts"
 import { singleFile } from "./pipes/single.ts"
 
-export const allBuilds = new Array<Build>()
+export const allRules = new Array<Rule>()
 
-export abstract class Build {
-	static buildClass: typeof Build
+export abstract class Rule {
+	static ruleClass: typeof Rule
 	static vars: Record<string, RuleVar> | null
 	static ninjaRules: Map<string, NinjaRule>
 
@@ -19,26 +19,26 @@ export abstract class Build {
 	constructor() {
 		// Static initialization runs on first instantiation, because we need the most specific
 		// subclass for some states.
-		const buildClass = this.buildClass
-		if (buildClass.buildClass !== buildClass) {
-			buildClass.buildClass = buildClass
-			buildClass.vars = null
-			buildClass.ninjaRules = new Map()
+		const ruleClass = this.ruleClass
+		if (ruleClass.ruleClass !== ruleClass) {
+			ruleClass.ruleClass = ruleClass
+			ruleClass.vars = null
+			ruleClass.ninjaRules = new Map()
 		}
 
-		allBuilds.push(this)
+		allRules.push(this)
 	}
 
-	get buildClass(): typeof Build {
+	get ruleClass(): typeof Rule {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-		return Object.getPrototypeOf(this).constructor as typeof Build
+		return Object.getPrototypeOf(this).constructor as typeof Rule
 	}
 
 	get vars(): { [key in keyof this]: RuleVar } {
 		// Cached at class level, but computed at instance level because only then we have all
 		// the properties.
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-return
-		return (this.buildClass.vars ||= Object.fromEntries(
+		return (this.ruleClass.vars ||= Object.fromEntries(
 			Object.keys(this).map((key) => {
 				let ninjaName: string
 				if (key === "ins") {
@@ -56,7 +56,7 @@ export abstract class Build {
 
 	effect(): void {}
 
-	abstract rule(): {
+	abstract command(): {
 		command: string
 		name?: string
 		description?: string
@@ -64,13 +64,13 @@ export abstract class Build {
 	}
 }
 
-export const rerun = new (class RerunNeja extends Build {
+export const rerun = new (class RerunNeja extends Rule {
 	mainNejafile = singleFile()
 	implicitIns = fileArray()
 	outs = fileArray()
 	commandBase = ""
 
-	rule() {
+	command() {
 		if (!this.mainNejafile.item) {
 			throw new Error("RerunNeja requires the main Nejafile.")
 		}

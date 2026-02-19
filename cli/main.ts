@@ -1,7 +1,7 @@
 import * as fs from "fs"
 import * as nodePath from "path"
 import { neja } from "@lib"
-import { createOutputStreams, drainBuilds, resolveRules, writeHeaders } from "./gen.ts"
+import { createOutputStreams, drainRules, resolveRules, writeHeaders } from "./gen.ts"
 import { fs_symlink } from "@util/node.ts"
 import { parseArgs } from "util"
 
@@ -66,7 +66,7 @@ export default async function main(imports: string[]): Promise<void> {
 	const project = (await import(nejafilePath)) as object
 
 	for (const [k, v] of Object.entries(project)) {
-		if (v instanceof neja.Build) {
+		if (v instanceof neja.Rule) {
 			v.exportName ||= k
 		}
 	}
@@ -75,7 +75,7 @@ export default async function main(imports: string[]): Promise<void> {
 	try {
 		await writeHeaders({ ruleOut, buildOut })
 
-		await drainBuilds()
+		await drainRules()
 
 		await resolveRules({ ruleOut, buildOut, imports })
 	} finally {

@@ -1,6 +1,6 @@
 import { neja } from "neja"
 
-export class CCObj extends neja.Build {
+export class CCObj extends neja.Rule {
 	obj: neja.File
 
 	constructor(src: neja.File) {
@@ -12,7 +12,7 @@ export class CCObj extends neja.Build {
 		this.outs = [this.obj]
 	}
 
-	rule() {
+	command() {
 		const { ins, outs } = this.vars
 
 		return {
@@ -21,7 +21,7 @@ export class CCObj extends neja.Build {
 	}
 }
 
-export class CCExe extends neja.Build implements neja.FilePipe {
+export class CCExe extends neja.Rule implements neja.FilePipe {
 	srcs = neja.fileArray()
 
 	onFileItem = this.srcs.onFileItem.bind(this.srcs)
@@ -38,7 +38,7 @@ export class CCExe extends neja.Build implements neja.FilePipe {
 		})
 	}
 
-	rule() {
+	command() {
 		const { ins, outs } = this.vars
 
 		return {

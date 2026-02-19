@@ -2,7 +2,7 @@ import * as path from "path"
 import type { neja } from "@lib"
 import { UniqueNameResolver } from "./unique_name_resolver.ts"
 
-const uniqueAnonBuildNames = new UniqueNameResolver()
+const uniqueAnonTargetNames = new UniqueNameResolver()
 
 export function formatRuleChunk(rule: neja.NinjaRule): string {
 	const { uniqueName, command, description, generator } = rule
@@ -17,42 +17,42 @@ export function formatRuleChunk(rule: neja.NinjaRule): string {
 	return chunk
 }
 
-export function formatBuildChunk(build: neja.Build, rule: neja.NinjaRule): string {
+export function formatBuildChunk(rule: neja.Rule, ninjaRule: neja.NinjaRule): string {
 	let chunk = ""
-	let outsChunk = build.outs.map((o) => `${o}`).join(" ")
+	let outsChunk = rule.outs.map((o) => `${o}`).join(" ")
 
-	if (build.exportName) {
-		const outsIncludeExportName = build.outs.some((out) => `${out}` === build.exportName)
+	if (rule.exportName) {
+		const outsIncludeExportName = rule.outs.some((out) => `${out}` === rule.exportName)
 		if (outsIncludeExportName) {
-			if (build.outs.length > 1) {
+			if (rule.outs.length > 1) {
 				throw new Error(
-					`If you want the name of exported target "${build.exportName}" to coincide with one of its outputs, it cannot have any other outputs.`,
+					`If you want the name of exported target "${rule.exportName}" to coincide with one of its outputs, it cannot have any other outputs.`,
 				)
 			}
 			// The export name matches the output exactly, so nothing to do here as it will be handled by
 			// the general case.
-		} else if (build.outs.length > 0) {
-			chunk += `build ${build.exportName}: phony ${outsChunk}\n\n`
+		} else if (rule.outs.length > 0) {
+			chunk += `build ${rule.exportName}: phony ${outsChunk}\n\n`
 		} else {
-			outsChunk = build.exportName
+			outsChunk = rule.exportName
 		}
-	} else if (build.outs.length === 0) {
-		const uniqueName = uniqueAnonBuildNames.claim(build.buildClass.name)
+	} else if (rule.outs.length === 0) {
+		const uniqueName = uniqueAnonTargetNames.claim(rule.ruleClass.name)
 		outsChunk = path.join("anon", uniqueName)
 	}
 
-	chunk += `build ${outsChunk}: ${rule.uniqueName}`
+	chunk += `build ${outsChunk}: ${ninjaRule.uniqueName}`
 
-	if (build.ins.length > 0) {
-		const insChunk = build.ins.map((i) => `${i}`).join(" ")
+	if (rule.ins.length > 0) {
+		const insChunk = rule.ins.map((i) => `${i}`).join(" ")
 		chunk += ` ${insChunk}`
 	}
 
 	const formattedImplicitIns = new Array<string>()
-	if (build.alwaysDirty) {
+	if (rule.alwaysDirty) {
 		formattedImplicitIns.push("always_dirty")
 	}
-	for (const implicitIn of build.implicitIns) {
+	for (const implicitIn of rule.implicitIns) {
 		formattedImplicitIns.push(`${implicitIn}`)
 	}
 
@@ -61,8 +61,8 @@ export function formatBuildChunk(build: neja.Build, rule: neja.NinjaRule): strin
 		chunk += ` | ${implicitInsChunk}`
 	}
 
-	const values = build as unknown as Record<string, unknown>
-	for (const key of rule.vars) {
+	const values = rule as unknown as Record<string, unknown>
+	for (const key of ninjaRule.vars) {
 		const value = values[key]
 		if (value !== undefined) {
 			chunk += `\n  ${key} = ${value as unknown}`

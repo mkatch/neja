@@ -1,13 +1,3 @@
-export type {
-	NinjaRule, //
-} from "./build.ts"
-export {
-	allBuilds, //
-	Build,
-	rerun,
-	RuleVar,
-} from "./build.ts"
-
 export {
 	captureCurrentSourceDir, //
 	maybeNejafile,
@@ -106,6 +96,15 @@ export {
 export {
 	write, //
 } from "./pipes/write.ts"
+
+export type {
+	NinjaRule, //
+} from "./rule.ts"
+export {
+	rerun, //
+	Rule,
+	RuleVar,
+} from "./rule.ts"
 
 export {
 	drainDiscoveryTasks, //

@@ -61,14 +61,15 @@ export async function writeHeaders(params: {
 	)
 }
 
-export async function drainBuilds(): Promise<void> {
-	for (let i = 0; i < neja.allBuilds.length; ++i) {
-		const build = neja.allBuilds[i]
+export async function drainRules(): Promise<void> {
+	const { allRules } = neja.internal
+	for (let i = 0; i < allRules.length; ++i) {
+		const rule = allRules[i]
 
-		if (build.effect !== neja.Build.prototype.effect) {
+		if (rule.effect !== neja.Rule.prototype.effect) {
 			// Call conditionally to improve parallelism.
 			await neja.drainDiscoveryTasks()
-			build.effect()
+			rule.effect()
 		}
 	}
 }
@@ -87,46 +88,47 @@ export async function resolveRules(params: {
 		}
 	}
 
-	const buildCount = neja.allBuilds.length
-	for (let i = 0; i < buildCount; ++i) {
-		const build = neja.allBuilds[i]
-		await resolveRules_single(build, ruleOut, buildOut)
+	const { allRules } = neja.internal
+	const ruleCount = allRules.length
+	for (let i = 0; i < ruleCount; ++i) {
+		const rule = allRules[i]
+		await resolveRules_single(rule, ruleOut, buildOut)
 	}
 
-	if (neja.allBuilds.length > buildCount) {
-		// TODO: Should probably be done actively in the Build constructor. We should also cover other
+	if (allRules.length > ruleCount) {
+		// TODO: Should probably be done actively in the Rule constructor. We should also cover other
 		// prohibited operations.
-		throw new Error("New builds were added while resolving rules.")
+		throw new Error("New rules were added while resolving rules.")
 	}
 }
 
 async function resolveRules_single(
-	build: neja.Build,
+	rule: neja.Rule,
 	ruleOut: fs.WriteStream,
 	buildOut: fs.WriteStream,
 ): Promise<void> {
 	// We later hack those, so disallow to avoid problems.
-	if ("in" in build || "out" in build) {
+	if ("in" in rule || "out" in rule) {
 		throw new Error('Properties "in" and "out" are reserved.')
 	}
 
-	const buildClass = build.buildClass
+	const ruleClass = rule.ruleClass
 
 	const {
 		command,
 		description = "",
-		name: baseName = buildClass.name || build.exportName,
+		name: baseName = ruleClass.name || rule.exportName,
 		generator = false,
-	} = build.rule()
+	} = rule.command()
 
-	const ninjaRules = buildClass.ninjaRules
+	const ninjaRules = ruleClass.ninjaRules
 	let ninjaRule = ninjaRules.get(command)
 
 	if (!ninjaRule) {
-		const availableVars = build.vars
+		const availableVars = rule.vars
 		const usedVars = new Array<string>()
-		drainBuilds_scanVars(availableVars, command, usedVars)
-		drainBuilds_scanVars(availableVars, description, usedVars)
+		resolveRules_scanVars(availableVars, command, usedVars)
+		resolveRules_scanVars(availableVars, description, usedVars)
 		Array_sortAndRemoveDuplicates(usedVars)
 
 		const uniqueName = uniqueRuleNames.claim(baseName)
@@ -155,11 +157,11 @@ async function resolveRules_single(
 		}
 	}
 
-	const buildChunk = formatBuildChunk(build, ninjaRule)
+	const buildChunk = formatBuildChunk(rule, ninjaRule)
 	await WriteStream_submit(buildOut, buildChunk)
 }
 
-function drainBuilds_scanVars(
+function resolveRules_scanVars(
 	availableVars: Record<string, neja.RuleVar>,
 	text: string,
 	usedVars: string[],

@@ -1,13 +1,13 @@
 import { neja } from "neja"
 
-export class Cat extends neja.Build implements neja.FilePipe {
+export class Cat extends neja.Rule implements neja.FilePipe {
 	ins = neja.fileArray()
 	outs = neja.fileArray()
 	lineNumbers = false
 
 	onFileItem = this.ins.onFileItem.bind(this.ins)
 
-	rule() {
+	command() {
 		let command = "cat"
 
 		if (this.lineNumbers) {

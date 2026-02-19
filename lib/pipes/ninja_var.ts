@@ -1,4 +1,4 @@
-import { RuleVar } from "../build"
+import { RuleVar } from "../rule"
 import type { FilePipe } from "../pipe"
 
 export function ninjaVar(name: string, params?: { overwrite?: boolean }): FilePipe {
