@@ -60,6 +60,7 @@ export abstract class Rule {
 		command: string
 		name?: string
 		description?: string
+		depfile?: string
 		generator?: boolean
 	}
 }
@@ -105,6 +106,7 @@ export type NinjaRule = {
 	uniqueName: string
 	command: string
 	description: string
+	depfile: string
 	vars: string[]
 	generator: boolean
 }

@@ -16,7 +16,8 @@ export class CCObj extends neja.Rule {
 		const { ins, outs } = this.vars
 
 		return {
-			command: `cc -c ${ins} -o ${outs}`,
+			command: `cc -c ${ins} -o ${outs} -MMD -MF ${outs}.d`,
+			depfile: `${outs}.d`,
 		}
 	}
 }
@@ -31,7 +32,7 @@ export class CCExe extends neja.Rule implements neja.FilePipe {
 		this.outs = [neja.file(neja.outRoot, name)]
 	}
 
-	effect = () => {
+	effect() {
 		this.ins = this.srcs.map((src) => {
 			const ccObj = new CCObj(src)
 			return ccObj.obj

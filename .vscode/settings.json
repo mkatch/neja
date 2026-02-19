@@ -5,5 +5,13 @@
 	"eslint.runtime": ".neja-build/node/bin/node",
 	"eslint.nodePath": ".neja-build/node/lib/node_modules",
 	"cSpell.ignorePaths": ["package-lock.json", "node_modules", "build"],
-	"cSpell.words": ["builddir", "catter", "neja", "Nejafile", "sourcedir", "srcs"]
+	"cSpell.words": [
+		"builddir",
+		"catter",
+		"depfile",
+		"neja",
+		"Nejafile",
+		"sourcedir",
+		"srcs"
+	]
 }

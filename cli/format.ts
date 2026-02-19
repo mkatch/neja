@@ -5,10 +5,13 @@ import { UniqueNameResolver } from "./unique_name_resolver.ts"
 const uniqueAnonTargetNames = new UniqueNameResolver()
 
 export function formatRuleChunk(rule: neja.NinjaRule): string {
-	const { uniqueName, command, description, generator } = rule
+	const { uniqueName, command, description, depfile, generator } = rule
 	let chunk = `rule ${uniqueName}\n  command = ${command}\n`
 	if (description) {
 		chunk += `  description = ${description}\n`
+	}
+	if (depfile) {
+		chunk += `  depfile = ${depfile}\n`
 	}
 	if (generator) {
 		chunk += `  generator = 1\n`

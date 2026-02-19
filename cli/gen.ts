@@ -118,6 +118,7 @@ async function resolveRules_single(
 		command,
 		description = "",
 		name: baseName = ruleClass.name || rule.exportName,
+		depfile = "",
 		generator = false,
 	} = rule.command()
 
@@ -129,6 +130,7 @@ async function resolveRules_single(
 		const usedVars = new Array<string>()
 		resolveRules_scanVars(availableVars, command, usedVars)
 		resolveRules_scanVars(availableVars, description, usedVars)
+		resolveRules_scanVars(availableVars, depfile, usedVars)
 		Array_sortAndRemoveDuplicates(usedVars)
 
 		const uniqueName = uniqueRuleNames.claim(baseName)
@@ -138,6 +140,7 @@ async function resolveRules_single(
 			uniqueName,
 			command,
 			description,
+			depfile,
 			vars: usedVars,
 			generator,
 		}
@@ -151,6 +154,9 @@ async function resolveRules_single(
 		}
 		if (ninjaRule.description !== description) {
 			throw new Error("Ninja rule description mismatch for the same command.")
+		}
+		if (ninjaRule.depfile !== depfile) {
+			throw new Error("Ninja rule depfile mismatch for the same command.")
 		}
 		if (ninjaRule.generator !== generator) {
 			throw new Error("Ninja rule generator flag mismatch for the same command.")
