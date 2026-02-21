@@ -14,7 +14,7 @@ echo "=== Running Neja ========================================================"
 echo
 
 mkdir -p build
-../../.neja-build/bin/neja-dev -f neja.ts -C build
+../../.neja-build/bin/neja-dev -f neja.ts -C build $@[2,-1]
 
 echo
 echo "=== Generated: rules.ninja =============================================="

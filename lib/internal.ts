@@ -1,4 +1,8 @@
 export {
+  arg_init, //
+} from "./arg.ts"
+
+export {
 	env_init, //
 } from "./env.ts"
 

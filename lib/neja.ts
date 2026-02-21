@@ -1,3 +1,13 @@
+export type {
+	parseArgs_Result_Arg, //
+	parseArgs_Result,
+	parseArgs_Specs_Arg,
+	parseArgs_Specs,
+} from "./arg.ts"
+export {
+	parseArgs, //
+} from "./arg.ts"
+
 export {
 	captureCurrentSourceDir, //
 	maybeNejafile,

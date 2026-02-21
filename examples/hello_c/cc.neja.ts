@@ -1,5 +1,11 @@
 import { neja } from "neja"
 
+export const flags = await neja.resolveFlags({
+	optLevel: neja.flag<0 | 1 | 2 | 3>({ required: true })
+})
+
+const optFlag = `-O${flags.optLevel}`
+
 export class CCObj extends neja.Rule {
 	obj: neja.File
 
@@ -16,7 +22,7 @@ export class CCObj extends neja.Rule {
 		const { ins, outs } = this.vars
 
 		return {
-			command: `cc -c ${ins} -o ${outs} -MMD -MF ${outs}.d`,
+			command: `cc -c ${ins} -o ${outs} ${optFlag} -MMD -MF ${outs}.d`,
 			depfile: `${outs}.d`,
 		}
 	}
@@ -43,7 +49,7 @@ export class CCExe extends neja.Rule implements neja.FilePipe {
 		const { ins, outs } = this.vars
 
 		return {
-			command: `cc ${ins} -o ${outs}`,
+			command: `cc ${ins} ${optFlag} -o ${outs}`,
 		}
 	}
 }

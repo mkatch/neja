@@ -6,9 +6,20 @@ import { fs_symlink } from "@util/node.ts"
 import { parseArgs } from "util"
 
 export default async function main(imports: string[]): Promise<void> {
+	let cliArgv = process.argv.slice(2)
+	let nejaArgv: string[] = []
+	const optionTerminatorIndex = cliArgv.indexOf("--")
+	if (optionTerminatorIndex !== -1) {
+		nejaArgv = cliArgv.slice(optionTerminatorIndex + 1)
+		cliArgv = cliArgv.slice(0, optionTerminatorIndex)
+	}
+	console.log("CLI argv:", cliArgv)
+	console.log("Neja argv:", nejaArgv)
+
 	const {
 		values: { file, chdir },
 	} = parseArgs({
+		args: cliArgv,
 		options: {
 			file: { type: "string", short: "f" },
 			chdir: { type: "string", short: "C" },
@@ -35,6 +46,7 @@ export default async function main(imports: string[]): Promise<void> {
 		sourceDirPath,
 		buildDirPath,
 	})
+	neja.internal.arg_init({ argv: nejaArgv })
 	neja.internal.file_init()
 
 	const buildDirLinkPath = neja.resolvePath(sourceDirPath, ".neja-build/")
