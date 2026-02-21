@@ -1,0 +1,32 @@
+{
+	"folders": [{ "path": "." }, { "path": "./examples" }],
+	"extensions": {
+		"recommendations": [
+			"oxc.oxc-vscode",
+			"dbaeumer.vscode-eslint",
+			"streetsidesoftware.code-spell-checker",
+		],
+	},
+	"settings": {
+		"[typescript][typescriptreact][javascript][javascriptreact][jsonc][json]": {
+			"editor.defaultFormatter": "oxc.oxc-vscode",
+		},
+		"typescript.preferences.preferTypeOnlyAutoImports": true,
+		"typescript.preferences.importModuleSpecifier": "shortest",
+		"eslint.validate": ["typescript"],
+		"eslint.runtime": ".neja-build/node/bin/node",
+		"eslint.nodePath": ".neja-build/node/lib/node_modules",
+		"cSpell.ignorePaths": ["package-lock.json", "node_modules", "build"],
+		"cSpell.words": [
+			"builddir",
+			"catter",
+			"dbaeumer",
+			"depfile",
+			"neja",
+			"Nejafile",
+			"oxfmt",
+			"sourcedir",
+			"srcs",
+		],
+	},
+}

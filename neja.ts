@@ -31,12 +31,13 @@ neja.sourceTree({
 		"package.json.template": libTypesPackageJson.source,
 	},
 	"node_modules/": {
+		"@eslint/": nodeModuleLink("eslint"),
 		"esbuild/": nodeModuleLink(),
+		"eslint-config-prettier/": nodeModuleLink(),
 		"eslint/": nodeModuleLink(),
 		"globals/": nodeModuleLink("eslint"),
-		"@eslint/": nodeModuleLink("eslint"),
+		"oxfmt/": nodeModuleLink(),
 		"typescript-eslint/": nodeModuleLink(),
-		"eslint-config-prettier/": nodeModuleLink(),
 	},
 	"tsconfig.lib-types.json": libTypes.project,
 })
