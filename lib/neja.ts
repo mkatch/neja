@@ -10,6 +10,7 @@ export {
 
 export {
 	captureCurrentSourceDir, //
+	isNejafilePath,
 	maybeNejafile,
 } from "./env.ts"
 

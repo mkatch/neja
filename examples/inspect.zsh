@@ -13,26 +13,25 @@ echo
 echo "=== Running Neja ========================================================"
 echo
 
-mkdir -p build
-../../.neja-build/bin/neja-dev -f neja.ts -C build $@[2,-1]
+../../.neja-build/bin/neja-dev -f neja.ts -C build/inspect -m $@[2,-1]
 
 echo
 echo "=== Generated: rules.ninja =============================================="
 echo
 
-cat -n build/rules.ninja
+cat -n build/inspect/rules.ninja
 
 echo
 echo "=== Generated: build.ninja =============================================="
 echo
 
-cat -n build/build.ninja
+cat -n build/inspect/build.ninja
 
 echo
 echo "=== Running Ninja ======================================================="
 echo
 
-ninja -C build
+ninja -C build/inspect
 
 echo
 echo "=== Done ================================================================"

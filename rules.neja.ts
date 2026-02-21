@@ -18,8 +18,8 @@ export const flags = await neja.resolveFlags({
 })
 
 export class EsbuildBundle extends neja.Build {
-	entryPoint = neja.singleFile({ required: true})
-	outFile = neja.singleFile({ required: true})
+	entryPoint = neja.singleFile({ required: true })
+	outFile = neja.singleFile({ required: true })
 	external = new Array<string>()
 	externalFlags?: string
 	alwaysDirty = true
@@ -35,17 +35,17 @@ export class EsbuildBundle extends neja.Build {
 		const { ins, outs, externalFlags } = this.vars
 
 		return {
-			command: `${esbuildExePath} ${ins} --bundle --platform=node --format=esm ${externalFlags} --outfile=${outs}`,
+			command: `${esbuildExePath} ${ins} --bundle --platform=node --format=esm --sourcemap=linked --sources-content=false ${externalFlags} --outfile=${outs}`,
 			description: `Create bundle ${outs} from entry point ${ins}.`,
 		}
 	}
 }
 
 export class CliEsbuildBundle extends neja.Build {
-	static buildScript = neja.singleFile({ required: true})
+	static buildScript = neja.singleFile({ required: true })
 
-	entryPoint = neja.singleFile({ required: true})
-	outFile = neja.singleFile({ required: true})
+	entryPoint = neja.singleFile({ required: true })
+	outFile = neja.singleFile({ required: true })
 	alwaysDirty = true
 
 	rule() {
@@ -62,8 +62,8 @@ export class CliEsbuildBundle extends neja.Build {
 }
 
 export class Tsc extends neja.Build {
-	project = neja.singleFile({ required: true})
-	outDir = neja.singleDir({ required: true})
+	project = neja.singleFile({ required: true })
+	outDir = neja.singleDir({ required: true })
 	alwaysDirty = true
 
 	rule() {
@@ -79,8 +79,8 @@ export class Tsc extends neja.Build {
 }
 
 export class Cp extends neja.Build {
-	source = neja.singleFile({ required: true})
-	destination = neja.singleFile({ required: true})
+	source = neja.singleFile({ required: true })
+	destination = neja.singleFile({ required: true })
 
 	rule() {
 		this.ins = [this.source.item]

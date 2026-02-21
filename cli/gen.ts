@@ -9,10 +9,7 @@ const COMMAND_PARAM_PATTERN = /([^$]|^)\${([^}]+)}/gm
 const uniqueRuleNames = new UniqueNameResolver()
 const globalVars: Record<string, neja.RuleVar> = {}
 
-export function createOutputStreams(params: {
-	ruleFile: neja.File,
-	buildFile: neja.File,
-}): {
+export function createOutputStreams(params: { ruleFile: neja.File; buildFile: neja.File }): {
 	ruleOut: fs.WriteStream
 	buildOut: fs.WriteStream
 	endOutput: () => void
@@ -42,7 +39,7 @@ export async function writeHeaders(params: {
 	ruleOut: fs.WriteStream
 	buildOut: fs.WriteStream
 }): Promise<void> {
-	const { ruleOut, buildOut} = params
+	const { ruleOut, buildOut } = params
 
 	uniqueRuleNames.claim("rerun_neja")
 

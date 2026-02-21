@@ -144,3 +144,23 @@ export async function fs_symlink(
 		throw e
 	}
 }
+
+export async function process_chdir(
+	path: string,
+	params?: {
+		createRecursively?: boolean
+	},
+): Promise<void> {
+	const { createRecursively = false } = params ?? {}
+
+	try {
+		process.chdir(path)
+	} catch (e) {
+		if (createRecursively && (e as NodeJS.ErrnoException).code === "ENOENT") {
+			await fs.promises.mkdir(path, { recursive: true })
+			process.chdir(path)
+		} else {
+			throw e
+		}
+	}
+}

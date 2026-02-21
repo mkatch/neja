@@ -2,7 +2,7 @@ import * as fs from "fs"
 import * as nodePath from "path"
 import { neja } from "@lib"
 import { createOutputStreams, drainRules, resolveRules, writeHeaders } from "./gen.ts"
-import { fs_symlink } from "@util/node.ts"
+import { fs_symlink, process_chdir } from "@util/node.ts"
 import { parseArgs } from "util"
 
 export default async function main(imports: string[]): Promise<void> {
@@ -17,12 +17,13 @@ export default async function main(imports: string[]): Promise<void> {
 	console.log("Neja argv:", nejaArgv)
 
 	const {
-		values: { file, chdir },
+		values: { file, chdir, makeChdir = false },
 	} = parseArgs({
 		args: cliArgv,
 		options: {
 			file: { type: "string", short: "f" },
 			chdir: { type: "string", short: "C" },
+			makeChdir: { type: "boolean", short: "m" },
 		},
 	})
 
@@ -30,14 +31,20 @@ export default async function main(imports: string[]): Promise<void> {
 		throw new Error("Must provide path to Nejafile")
 	}
 
+	const nejafilePath = neja.normalizePath("file", nodePath.resolve(file))
+	if (!neja.isNejafilePath(nejafilePath)) {
+		throw new Error(
+			`File name not recognized as a Nejafile: ${nejafilePath}. Allowed files are: neja.ts, neja.js, *.neja.ts, *.neja.js.`,
+		)
+	}
+
 	const [nodeExePath, scriptPath] = await Promise.all([
 		fs.promises.realpath(process.argv[0]).then((path) => neja.normalizePath("file", path)),
 		fs.promises.realpath(process.argv[1]).then((path) => neja.normalizePath("file", path)),
 	])
-	const nejafilePath = neja.normalizePath("file", nodePath.resolve(file))
 
 	if (chdir) {
-		process.chdir(chdir)
+		await process_chdir(chdir, { createRecursively: makeChdir })
 	}
 	const buildDirPath = neja.normalizePath("dir", process.cwd())
 	const sourceDirPath = neja.parentPath(nejafilePath)

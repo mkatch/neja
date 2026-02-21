@@ -7,6 +7,13 @@
 			"request": "launch",
 			"skipFiles": ["<node_internals>/**"],
 			"type": "node"
+		},
+		{
+			"name": "Discover current Nejafile",
+			"request": "launch",
+			"program": "${workspaceRoot}/.neja-build/bin/neja-dev",
+			"args": ["-f", "${file}", "-C", "${fileDirname}/build/launch", "-m"],
+			"type": "node"
 		}
 	]
 }

@@ -40,6 +40,8 @@ async function main() {
 		bundle: true,
 		platform: "node",
 		format: "esm",
+		sourcemap: "linked",
+		sourcesContent: false,
 		plugins: [rewriteNejaImports],
 	})
 }

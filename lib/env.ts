@@ -6,24 +6,25 @@ import { expectRelativeDescendantPath, isDescendant, normalizePath } from "./pat
 export let sourceDirPath!: Path
 export let buildDirPath!: Path
 
-export function env_init(params: {
-	sourceDirPath: Path
-	buildDirPath: Path
-}): void {
+export function env_init(params: { sourceDirPath: Path; buildDirPath: Path }): void {
 	sourceDirPath = params.sourceDirPath
 	buildDirPath = params.buildDirPath
 }
 
 const NEJAFILE_PATH_PATTERN = /(^|[/.\\])neja\.[tj]s$/
 
+export function isNejafilePath(filePathOrUrl: string): boolean {
+	return NEJAFILE_PATH_PATTERN.test(filePathOrUrl)
+}
+
 export function maybeNejafile(filePathOrUrl: string): File | null {
-	if (!NEJAFILE_PATH_PATTERN.test(filePathOrUrl)) {
+	if (!isNejafilePath(filePathOrUrl)) {
 		return null
 	}
 
-	const nejafilePath = normalizePath(filePathOrUrl.startsWith("file://")
-		? filePathOrUrl.substring("file://".length)
-		: filePathOrUrl)
+	const nejafilePath = normalizePath(
+		filePathOrUrl.startsWith("file://") ? filePathOrUrl.substring("file://".length) : filePathOrUrl,
+	)
 
 	if (!isDescendant(sourceRoot, nejafilePath, { includeSelf: false })) {
 		return null
