@@ -1,8 +1,4 @@
-import * as path from "path"
 import type { neja } from "@lib"
-import { UniqueNameResolver } from "./unique_name_resolver.ts"
-
-const uniqueAnonTargetNames = new UniqueNameResolver()
 
 export function formatRuleChunk(rule: neja.NinjaRule): string {
 	const { uniqueName, command, description, depfile, generator } = rule
@@ -22,26 +18,15 @@ export function formatRuleChunk(rule: neja.NinjaRule): string {
 
 export function formatBuildChunk(rule: neja.Rule, ninjaRule: neja.NinjaRule): string {
 	let chunk = ""
-	let outsChunk = rule.outs.map((o) => `${o}`).join(" ")
+
+	let outsChunk = rule.outs.map((outItem) => `${outItem}`).join(" ")
 
 	if (rule.exportName) {
-		const outsIncludeExportName = rule.outs.some((out) => `${out}` === rule.exportName)
-		if (outsIncludeExportName) {
-			if (rule.outs.length > 1) {
-				throw new Error(
-					`If you want the name of exported target "${rule.exportName}" to coincide with one of its outputs, it cannot have any other outputs.`,
-				)
-			}
-			// The export name matches the output exactly, so nothing to do here as it will be handled by
-			// the general case.
-		} else if (rule.outs.length > 0) {
-			chunk += `build ${rule.exportName}: phony ${outsChunk}\n\n`
-		} else {
+		if (!outsChunk) {
 			outsChunk = rule.exportName
+		} else {
+			chunk += `build ${rule.exportName}: phony ${outsChunk}\n`
 		}
-	} else if (rule.outs.length === 0) {
-		const uniqueName = uniqueAnonTargetNames.claim(rule.ruleClass.name)
-		outsChunk = path.join("anon", uniqueName)
 	}
 
 	chunk += `build ${outsChunk}: ${ninjaRule.uniqueName}`
@@ -69,6 +54,25 @@ export function formatBuildChunk(rule: neja.Rule, ninjaRule: neja.NinjaRule): st
 		const value = values[key]
 		if (value !== undefined) {
 			chunk += `\n  ${key} = ${value as unknown}`
+		}
+	}
+
+	chunk += "\n\n"
+	return chunk
+}
+
+export function formatDefaultTargets(defaultTargets: Set<neja.Rule>): string {
+	if (defaultTargets.size === 0) {
+		return ""
+	}
+
+	let chunk = "default"
+
+	for (const rule of defaultTargets) {
+		if (rule.exportName) {
+			chunk += ` ${rule.exportName}`
+		} else {
+			chunk += ` ${rule.outs.map((outItem) => `${outItem}`).join(" ")}`
 		}
 	}
 

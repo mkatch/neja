@@ -3,11 +3,95 @@ import { neja } from "@lib"
 import { Array_sortAndRemoveDuplicates } from "@util/array.ts"
 import { WriteStream_submit } from "@util/node.ts"
 import { UniqueNameResolver } from "./unique_name_resolver.ts"
-import { formatBuildChunk, formatRuleChunk } from "./format.ts"
+import { formatBuildChunk, formatDefaultTargets, formatRuleChunk } from "./format.ts"
 
 const COMMAND_PARAM_PATTERN = /([^$]|^)\${([^}]+)}/gm
 const uniqueRuleNames = new UniqueNameResolver()
+const uniqueAnonTargetNames = new UniqueNameResolver()
 const globalVars: Record<string, neja.RuleVar> = {}
+
+export async function processImports(
+	imports: string[],
+): Promise<{ defaultTargets: Set<neja.Rule> }> {
+	const nejafiles = new Array<{
+		file: neja.File
+		importUrl: string
+	}>()
+
+	for (const fileUrl of imports) {
+		const nejafile = neja.maybeNejafile(fileUrl)
+		if (nejafile) {
+			nejafiles.push({ file: nejafile, importUrl: fileUrl })
+		}
+	}
+
+	// Sorting for two reasons:
+	//  1. In case a target is re-exported from multiple files, we want to infer the name from the
+	//     highest one.
+	//  2. Deterministic output, as the files are included as the dependencies for thee "rerun"
+	//     statement
+	nejafiles.sort((a, b) => (a.file.path < b.file.path ? -1 : 1))
+
+	const defaultTargets = new Set<neja.Rule>()
+
+	for (const { file: nejafile, importUrl } of nejafiles) {
+		neja.pipe(nejafile, neja.rerun.implicitIns)
+
+		// Completes immediately because it was already imported.
+		const module = (await import(importUrl)) as object
+
+		let defaultExport: unknown
+
+		for (const [key, value] of Object.entries(module)) {
+			if (key === "default") {
+				defaultExport = value
+			} else if (value instanceof neja.Rule) {
+				value.exportingFile ||= nejafile
+				value.exportName ||= key
+			}
+		}
+
+		// Normal exports take priority over default exports for `exportName` inference.
+		if (defaultExport) {
+			if (defaultExport instanceof neja.Rule) {
+				defaultExport.exportingFile ||= nejafile
+				defaultTargets.add(defaultExport)
+			} else if (typeof defaultExport === "object") {
+				for (const [key, value] of Object.entries(defaultExport)) {
+					if (value instanceof neja.Rule) {
+						value.exportingFile ||= nejafile
+						value.exportName ||= key
+						defaultTargets.add(value)
+					}
+				}
+			}
+		}
+	}
+
+	return { defaultTargets }
+}
+
+export async function executeRuleEffects(): Promise<void> {
+	const { allRules } = neja.internal
+
+	for (let i = 0; i < allRules.length; ++i) {
+		const rule = allRules[i]
+
+		if (rule.effect !== neja.Rule.prototype.effect) {
+			// Call conditionally to improve parallelism.
+			await neja.drainDiscoveryTasks()
+			rule.effect()
+		}
+	}
+
+	for (const rule of allRules) {
+		if (rule.outs.length === 0 && !rule.exportName) {
+			// Conflicts with maliciously crafter user names still possible, but we don't care. They will be
+			// flagged by Ninja.
+			rule.exportName = uniqueAnonTargetNames.claim(rule.ruleClass.name)
+		}
+	}
+}
 
 export function createOutputStreams(params: { ruleFile: neja.File; buildFile: neja.File }): {
 	ruleOut: fs.WriteStream
@@ -58,32 +142,11 @@ export async function writeHeaders(params: {
 	)
 }
 
-export async function drainRules(): Promise<void> {
-	const { allRules } = neja.internal
-	for (let i = 0; i < allRules.length; ++i) {
-		const rule = allRules[i]
-
-		if (rule.effect !== neja.Rule.prototype.effect) {
-			// Call conditionally to improve parallelism.
-			await neja.drainDiscoveryTasks()
-			rule.effect()
-		}
-	}
-}
-
 export async function resolveRules(params: {
 	ruleOut: fs.WriteStream
 	buildOut: fs.WriteStream
-	imports: string[]
 }): Promise<void> {
-	const { ruleOut, buildOut, imports } = params
-
-	for (const fileUrl of imports) {
-		const nejafile = neja.maybeNejafile(fileUrl)
-		if (nejafile && nejafile !== neja.rerun.mainNejafile.item) {
-			neja.pipe(nejafile, neja.rerun.implicitIns)
-		}
-	}
+	const { ruleOut, buildOut } = params
 
 	const { allRules } = neja.internal
 	const ruleCount = allRules.length
@@ -186,4 +249,12 @@ function resolveRules_scanVars(
 
 		usedVars.push(key)
 	}
+}
+
+export async function writeDefaultTargets(
+	defaultTargets: Set<neja.Rule>,
+	buildOut: fs.WriteStream,
+): Promise<void> {
+	const defaultTargetsChunk = formatDefaultTargets(defaultTargets)
+	return WriteStream_submit(buildOut, defaultTargetsChunk)
 }

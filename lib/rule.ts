@@ -1,19 +1,24 @@
 import type { FileItem } from "./file.ts"
-import { buildRoot } from "./file.ts"
+import { buildRoot, File } from "./file.ts"
 import { fileArray } from "./pipes/array.ts"
 import { singleFile } from "./pipes/single.ts"
 
 export const allRules = new Array<Rule>()
+
+const EXPORT_NAME_PATTERN = /^\w*$/
 
 export abstract class Rule {
 	static ruleClass: typeof Rule
 	static vars: Record<string, RuleVar> | null
 	static ninjaRules: Map<string, NinjaRule>
 
+	// `private` doesn't work due to https://github.com/microsoft/TypeScript/issues/30355
+	#exportName = ""
+
 	ins: readonly FileItem[] = []
 	outs: readonly FileItem[] = []
 	implicitIns: readonly FileItem[] = []
-	exportName: string = ""
+	exportingFile: File | null = null
 	alwaysDirty = false
 
 	constructor() {
@@ -32,6 +37,19 @@ export abstract class Rule {
 	get ruleClass(): typeof Rule {
 		// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 		return Object.getPrototypeOf(this).constructor as typeof Rule
+	}
+
+	get exportName(): string {
+		return this.#exportName
+	}
+
+	set exportName(value: string) {
+		if (!EXPORT_NAME_PATTERN.test(value)) {
+			throw new Error(
+				`Invalid export name "${value}". Export names must consist exclusively of letters, numbers, and underscores.`,
+			)
+		}
+		this.#exportName = value
 	}
 
 	get vars(): { [key in keyof this]: RuleVar } {

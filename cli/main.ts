@@ -1,7 +1,14 @@
 import * as fs from "fs"
 import * as nodePath from "path"
 import { neja } from "@lib"
-import { createOutputStreams, drainRules, resolveRules, writeHeaders } from "./gen.ts"
+import {
+	createOutputStreams,
+	executeRuleEffects,
+	processImports,
+	resolveRules,
+	writeDefaultTargets,
+	writeHeaders,
+} from "./gen.ts"
 import { fs_symlink, process_chdir } from "@util/node.ts"
 import { parseArgs } from "util"
 
@@ -82,21 +89,19 @@ export default async function main(imports: string[]): Promise<void> {
 	neja.pipe(neja.file(nejafilePath), neja.rerun.mainNejafile)
 	neja.rerun.commandBase = `${nodeExePath} ${scriptPath}`
 
-	const project = (await import(nejafilePath)) as object
+	await import(nejafilePath)
 
-	for (const [k, v] of Object.entries(project)) {
-		if (v instanceof neja.Rule) {
-			v.exportName ||= k
-		}
-	}
+	const { defaultTargets } = await processImports(imports)
 
 	const { ruleOut, buildOut, endOutput } = createOutputStreams({ ruleFile, buildFile })
 	try {
 		await writeHeaders({ ruleOut, buildOut })
 
-		await drainRules()
+		await executeRuleEffects()
 
-		await resolveRules({ ruleOut, buildOut, imports })
+		await resolveRules({ ruleOut, buildOut })
+
+		await writeDefaultTargets(defaultTargets, buildOut)
 	} finally {
 		endOutput()
 	}
