@@ -71,7 +71,7 @@ export default async function main(imports: string[]): Promise<void> {
 
 	const nejaDirLinkPath = neja.resolvePath(buildDirPath, "neja/")
 	const nejaDirPath = neja.resolvePath(scriptPath, "../../")
-	console.log(`Symlinking "${nejaDirPath}" to "${nejaDirLinkPath}"`)
+	console.log(`Symlinking "${nejaDirLinkPath}" to "${nejaDirPath}"`)
 	await fs_symlink(nejaDirPath, nejaDirLinkPath, {
 		type: "dir",
 		overrideIfExistsAsLink: true,
@@ -79,6 +79,7 @@ export default async function main(imports: string[]): Promise<void> {
 
 	const nodeDirPath = neja.resolvePath(nodeExePath, "../../")
 	const nodeDirLinkPath = neja.resolvePath(buildDirPath, "node/")
+	console.log(`Symlinking "${nodeDirLinkPath}" to "${nodeDirPath}"`)
 	await fs_symlink(nodeDirPath, nodeDirLinkPath, {
 		type: "dir",
 		overrideIfExistsAsLink: true,
