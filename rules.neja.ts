@@ -17,14 +17,14 @@ export const flags = await neja.resolveFlags({
 	tscCommand: neja.flag<string>({ required: true }),
 })
 
-export class EsbuildBundle extends neja.Build {
+export class EsbuildBundle extends neja.Rule {
 	entryPoint = neja.singleFile({ required: true })
 	outFile = neja.singleFile({ required: true })
 	external = new Array<string>()
 	externalFlags?: string
 	alwaysDirty = true
 
-	rule() {
+	command() {
 		this.ins = [this.entryPoint.item]
 		this.outs = [this.outFile.item]
 
@@ -41,14 +41,14 @@ export class EsbuildBundle extends neja.Build {
 	}
 }
 
-export class CliEsbuildBundle extends neja.Build {
+export class CliEsbuildBundle extends neja.Rule {
 	static buildScript = neja.singleFile({ required: true })
 
 	entryPoint = neja.singleFile({ required: true })
 	outFile = neja.singleFile({ required: true })
 	alwaysDirty = true
 
-	rule() {
+	command() {
 		this.ins = [CliEsbuildBundle.buildScript.item, this.entryPoint.item]
 		this.outs = [this.outFile.item]
 
@@ -61,12 +61,12 @@ export class CliEsbuildBundle extends neja.Build {
 	}
 }
 
-export class Tsc extends neja.Build {
+export class Tsc extends neja.Rule {
 	project = neja.singleFile({ required: true })
 	outDir = neja.singleDir({ required: true })
 	alwaysDirty = true
 
-	rule() {
+	command() {
 		this.ins = [this.project.item]
 
 		const { ins, outDir } = this.vars
@@ -78,11 +78,11 @@ export class Tsc extends neja.Build {
 	}
 }
 
-export class Cp extends neja.Build {
+export class Cp extends neja.Rule {
 	source = neja.singleFile({ required: true })
 	destination = neja.singleFile({ required: true })
 
-	rule() {
+	command() {
 		this.ins = [this.source.item]
 		this.outs = [this.destination.item]
 
