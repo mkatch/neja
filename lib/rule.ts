@@ -20,6 +20,7 @@ export abstract class Rule {
 	implicitIns: readonly FileItem[] = []
 	exportingFile: File | null = null
 	alwaysDirty = false
+	ninjaRule: NinjaRule | null = null
 
 	constructor() {
 		// Static initialization runs on first instantiation, because we need the most specific

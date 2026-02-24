@@ -1,14 +1,7 @@
 import * as fs from "fs"
 import * as nodePath from "path"
 import { neja } from "@lib"
-import {
-	createOutputStreams,
-	executeRuleEffects,
-	processImports,
-	resolveRules,
-	writeDefaultTargets,
-	writeHeaders,
-} from "./gen.ts"
+import { executeRuleEffects, processImports, resolveRules, writeNinjaFile } from "./gen.ts"
 import { fs_symlink, process_chdir } from "@util/node.ts"
 import { parseArgs } from "util"
 
@@ -85,25 +78,14 @@ export default async function main(imports: string[]): Promise<void> {
 		overrideIfExistsAsLink: true,
 	})
 
-	const ruleFile = neja.pipe(neja.internal.buildFileItem("file", "rules.ninja"), neja.rerun.outs)
-	const buildFile = neja.pipe(neja.internal.buildFileItem("file", "build.ninja"), neja.rerun.outs)
+	const ninjaFile = neja.pipe(neja.internal.buildFileItem("file", "build.ninja"), neja.rerun.outs)
 	neja.pipe(neja.file(nejafilePath), neja.rerun.mainNejafile)
 	neja.rerun.commandBase = `${nodeExePath} ${scriptPath}`
 
 	await import(nejafilePath)
 
-	const { defaultTargets } = await processImports(imports)
-
-	const { ruleOut, buildOut, endOutput } = createOutputStreams({ ruleFile, buildFile })
-	try {
-		await writeHeaders({ ruleOut, buildOut })
-
-		await executeRuleEffects()
-
-		await resolveRules({ ruleOut, buildOut })
-
-		await writeDefaultTargets(defaultTargets, buildOut)
-	} finally {
-		endOutput()
-	}
+	await processImports(imports)
+	await executeRuleEffects()
+	resolveRules()
+	await writeNinjaFile(ninjaFile)
 }

@@ -16,12 +16,6 @@ echo
 ../../.neja-build/bin/neja-dev -f neja.ts -C build/inspect -m $@[2,-1]
 
 echo
-echo "=== Generated: rules.ninja =============================================="
-echo
-
-cat -n build/inspect/rules.ninja
-
-echo
 echo "=== Generated: build.ninja =============================================="
 echo
 
