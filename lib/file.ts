@@ -362,7 +362,10 @@ export function fileTree(rootedAt: Dir, tree: FileTreeDecl): Dir {
 
 function FileTreeDeclValue_isPipe(value: FileTreeDeclValue): value is FilePipeLike {
 	return (
-		typeof value === "function" || Array.isArray(value) || typeof value.onFileItem === "function"
+		value === undefined ||
+		typeof value === "function" ||
+		Array.isArray(value) ||
+		typeof value.onFileItem === "function"
 	)
 }
 

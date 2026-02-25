@@ -91,9 +91,11 @@ export type OnFileItem<T extends FileItem = FileItem> = (item: T) => void | Prom
  *	})
  * ```
  *
+ * `undefined` is a no-op pipe, useful for conditional application.
+ *
  * When implementing your own utilities for pipes, consider accepting a {@link FilePipeLike} instead of a {@link FilePipe} for maximum flexibility.
  */
-export type FilePipeLike = FilePipe | OnFileItem | FilePipeLike[]
+export type FilePipeLike = FilePipe | OnFileItem | FilePipeLike[] | undefined
 
 /**
  * Pass a {@link FileItem} to a {@link FilePipeLike}.
@@ -107,7 +109,9 @@ export function pipe<F extends FileItem>(item: F, pipe: FilePipeLike): F {
 }
 
 function pipe_aux(item: FileItem, pipe: FilePipeLike): void {
-	if (typeof pipe === "function") {
+	if (pipe === undefined) {
+		return
+	} else if (typeof pipe === "function") {
 		FileItem_addTask(item, pipe)
 	} else if ("onFileItem" in pipe) {
 		FileItem_addTask(item, pipe.onFileItem.bind(pipe))
