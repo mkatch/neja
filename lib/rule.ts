@@ -1,6 +1,6 @@
 import type { FileItem } from "./file.ts"
 import { buildRoot, File } from "./file.ts"
-import { fileArray } from "./pipes/array.ts"
+import { fileArray, fileItemArray } from "./pipes/array.ts"
 import { singleFile } from "./pipes/single.ts"
 
 export const allRules = new Array<Rule>()
@@ -17,7 +17,8 @@ export abstract class Rule {
 
 	ins: readonly FileItem[] = []
 	outs: readonly FileItem[] = []
-	implicitIns: readonly FileItem[] = []
+	implicitIns = fileItemArray()
+	orderOnlyIns = fileItemArray()
 	exportingFile: File | null = null
 	alwaysDirty = false
 	ninjaRule: NinjaRule | null = null
@@ -86,7 +87,6 @@ export abstract class Rule {
 
 export const rerun = new (class RerunNeja extends Rule {
 	mainNejafile = singleFile()
-	implicitIns = fileArray()
 	outs = fileArray()
 	commandBase = ""
 

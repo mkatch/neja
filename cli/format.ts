@@ -31,22 +31,25 @@ export function formatBuildChunk(rule: neja.Rule, ninjaRule: neja.NinjaRule): st
 
 	chunk += `build ${outsChunk}: ${ninjaRule.uniqueName}`
 
-	if (rule.ins.length > 0) {
-		const insChunk = rule.ins.map((i) => `${i}`).join(" ")
-		chunk += ` ${insChunk}`
+	for (const inItem of rule.ins) {
+		chunk += ` ${inItem}`
 	}
 
-	const formattedImplicitIns = new Array<string>()
+	if (rule.alwaysDirty || rule.implicitIns.length > 0) {
+		chunk += " |"
+	}
 	if (rule.alwaysDirty) {
-		formattedImplicitIns.push("always_dirty")
+		chunk += " always_dirty"
 	}
 	for (const implicitIn of rule.implicitIns) {
-		formattedImplicitIns.push(`${implicitIn}`)
+		chunk += ` ${implicitIn}`
 	}
 
-	if (formattedImplicitIns.length > 0) {
-		const implicitInsChunk = formattedImplicitIns.join(" ")
-		chunk += ` | ${implicitInsChunk}`
+	if (rule.orderOnlyIns.length > 0) {
+		chunk += " ||"
+	}
+	for (const orderOnlyIn of rule.orderOnlyIns) {
+		chunk += ` ${orderOnlyIn}`
 	}
 
 	const values = rule as unknown as Record<string, unknown>
