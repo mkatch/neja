@@ -1,0 +1,13 @@
+{
+	"name": "neja",
+	"version": "0.0.1",
+	"description": "Neja meta-build system",
+	"license": "ISC",
+	"author": "Marcin Kaczmarek <hello@mkacz.me> (https://mkacz.me)",
+	"type": "module",
+	"bin": {
+		"neja": "cli.js"
+	},
+	"main": "lib.js",
+	"types": "./types/neja/lib/index.d.ts"
+}

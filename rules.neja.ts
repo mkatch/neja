@@ -15,6 +15,8 @@ export const flags = await neja.resolveFlags({
 	hostNodePath: neja.flag<string>({ required: true }),
 
 	tscCommand: neja.flag<string>({ required: true }),
+
+	config: neja.flag<"dev" | "npm">({ defaultValue: "dev" }),
 })
 
 export class EsbuildBundle extends neja.Rule {
@@ -32,10 +34,17 @@ export class EsbuildBundle extends neja.Rule {
 			this.externalFlags = this.external.map((ext) => `--external:${ext}`).join(" ")
 		}
 
+		let configFlags = ""
+		if (flags.config === "dev") {
+			configFlags = "--sourcemap=linked --sources-content=false"
+		} else if (flags.config === "npm") {
+			configFlags = "--minify"
+		}
+
 		const { ins, outs, externalFlags } = this.vars
 
 		return {
-			command: `${esbuildExePath} ${ins} --bundle --platform=node --format=esm --sourcemap=linked --sources-content=false ${externalFlags} --outfile=${outs}`,
+			command: `${esbuildExePath} ${ins} --bundle --platform=node --format=esm ${configFlags} ${externalFlags} --outfile=${outs}`,
 			description: `Create bundle ${outs} from entry point ${ins}.`,
 		}
 	}

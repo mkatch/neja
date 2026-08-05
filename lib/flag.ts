@@ -35,7 +35,7 @@ export async function resolveFlags<S extends FlagSchema>(
 	schema: S,
 ): Promise<Expand<ResolvedFlags<S>>> {
 	for (const key of Object.keys(schema)) {
-		const exchange = 	flagBus.get(key)
+		const exchange = flagBus.get(key)
 		if (exchange) {
 			if (exchange.stage === "requested" || exchange.stage === "consumed") {
 				throw new Error(`Duplicate flag declaration: "${key}".`)
@@ -97,7 +97,7 @@ export async function resolveFlags<S extends FlagSchema>(
 	return result as ResolvedFlags<S>
 }
 
-export function setFlags<T extends ResolvedFlags>(flags: T): void {
+export function setFlags<T extends ResolvedFlags>(flags: Partial<T>): void {
 	for (const [key, value] of Object.entries(flags)) {
 		const exchange = flagBus.get(key)
 		if (exchange) {
