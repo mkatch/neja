@@ -97,7 +97,7 @@ export class Cp extends neja.Rule {
 
 function hostNodeModulePath(moduleName: string, parent?: string): string {
 	return parent
-		? path.join(nodeModulesPath, parent, "node_modules", moduleName)
+		? path.join(nodeModulesPath, parent, moduleName)
 		: path.join(nodeModulesPath, moduleName)
 }
 

@@ -6,14 +6,12 @@ import { singleFile } from "./pipes/single.ts"
 export const allRules = new Array<Rule>()
 
 const EXPORT_NAME_PATTERN = /^\w*$/
+const RULE_PRIVATE_KEY = Symbol("Rule private")
 
 export abstract class Rule {
 	static ruleClass: typeof Rule
 	static vars: Record<string, RuleVar> | null
 	static ninjaRules: Map<string, NinjaRule>
-
-	// `private` doesn't work due to https://github.com/microsoft/TypeScript/issues/30355
-	#exportName = ""
 
 	ins: readonly FileItem[] = []
 	outs: readonly FileItem[] = []
@@ -33,6 +31,10 @@ export abstract class Rule {
 			ruleClass.ninjaRules = new Map()
 		}
 
+		(this as unknown as { [RULE_PRIVATE_KEY]: RulePrivate })[RULE_PRIVATE_KEY] = {
+			exportName: "",
+		}
+
 		allRules.push(this)
 	}
 
@@ -42,7 +44,7 @@ export abstract class Rule {
 	}
 
 	get exportName(): string {
-		return this.#exportName
+		return Rule_private(this).exportName
 	}
 
 	set exportName(value: string) {
@@ -51,7 +53,7 @@ export abstract class Rule {
 				`Invalid export name "${value}". Export names must consist exclusively of letters, numbers, and underscores.`,
 			)
 		}
-		this.#exportName = value
+		Rule_private(this).exportName = value
 	}
 
 	get vars(): { [key in keyof this]: RuleVar } {
@@ -83,6 +85,15 @@ export abstract class Rule {
 		depfile?: string
 		generator?: boolean
 	}
+}
+
+interface RulePrivate {
+	exportName: string
+}
+
+// Simple `private` doesn't work due to https://github.com/microsoft/TypeScript/issues/30355
+function Rule_private(rule: Rule): RulePrivate {
+	return (rule as unknown as { [RULE_PRIVATE_KEY]: RulePrivate })[RULE_PRIVATE_KEY]
 }
 
 export const rerun = new (class RerunNeja extends Rule {

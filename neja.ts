@@ -31,11 +31,13 @@ neja.sourceTree({
 		"package.json.template": libTypesPackageJson.source,
 	},
 	"node_modules/": {
-		"@eslint/": nodeModuleLink("eslint"),
+		"@eslint/": {
+			"js/": nodeModuleLink("@eslint"), // TODO: Try to make it automatic
+		},
 		"esbuild/": nodeModuleLink(),
 		"eslint-config-prettier/": nodeModuleLink(),
 		"eslint/": nodeModuleLink(),
-		"globals/": nodeModuleLink("eslint"),
+		"globals/": nodeModuleLink(),
 		"oxfmt/": nodeModuleLink(),
 		"typescript-eslint/": nodeModuleLink(),
 	},
